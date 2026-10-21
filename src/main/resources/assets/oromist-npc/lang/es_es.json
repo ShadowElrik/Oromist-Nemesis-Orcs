@@ -107,5 +107,6 @@
   "dialogue.oromist-npc.dying.0": "Otros... vendrán...",
   "dialogue.oromist-npc.dying.1": "Mi jefe... te encontrará...",
   "dialogue.oromist-npc.dying.2": "Maldito... seas... %1$s...",
-  "dialogue.oromist-npc.dying.3": "No... así no..."
+  "dialogue.oromist-npc.dying.3": "No... así no...",
+  "command.oromist-npc.more": "...y %s orcos más te recuerdan."
 }

@@ -81,8 +81,13 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 
 	private static final Identifier RANK_MODIFIER = OromistNPC.id("rank");
 	private static final Identifier SIZE_MODIFIER = OromistNPC.id("size");
-	/** Distancia a la que se considera que el jugador perseguido ha huido. */
-	private static final double FLEE_DISTANCE = 40.0;
+	/**
+	 * Distancia a la que, al perder de vista a su objetivo, el orco considera que el jugador huyó.
+	 * Debe ser menor que FOLLOW_RANGE (35), porque a esa distancia la IA vanilla suelta al objetivo.
+	 */
+	private static final double FLEE_DISTANCE = 24.0;
+	/** Duración mínima del combate (ticks) para que alejarse cuente como huida. */
+	private static final int MIN_FIGHT_TICKS = 100;
 	/** Por debajo de este porcentaje de vida un orco puede decidir huir. */
 	private static final float RETREAT_HEALTH_RATIO = 0.25f;
 
@@ -166,7 +171,10 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 		}
 	}
 
-	/** Detecta si el jugador con el que combate se ha alejado lo suficiente como para considerar que huyó. */
+	/**
+	 * Detecta si el jugador con el que combatía huyó: la IA vanilla suelta al objetivo cuando
+	 * se aleja o lo pierde de vista, así que se comprueba justo en ese momento.
+	 */
 	private void trackEngagedPlayer() {
 		if (getTarget() instanceof ServerPlayer player && player.isAlive()) {
 			if (!player.getUUID().equals(engagedPlayer)) {
@@ -174,16 +182,16 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 				engagedTicks = 0;
 			}
 			engagedTicks++;
-			boolean longEnoughFight = engagedTicks > 100;
-			if (longEnoughFight && !retreating && distanceTo(player) > FLEE_DISTANCE && getHealth() > getMaxHealth() * 0.5f) {
-				hooks.onTargetFled(this, player);
-				setTarget(null);
-				engagedPlayer = null;
-			}
-		} else {
-			engagedPlayer = null;
-			engagedTicks = 0;
+			return;
 		}
+		if (engagedPlayer != null && engagedTicks > MIN_FIGHT_TICKS && !retreating
+				&& level().getPlayerByUUID(engagedPlayer) instanceof ServerPlayer escaped
+				&& escaped.isAlive() && !escaped.isSpectator() && !escaped.isCreative()
+				&& distanceTo(escaped) > FLEE_DISTANCE && getHealth() > getMaxHealth() * 0.5f) {
+			hooks.onTargetFled(this, escaped);
+		}
+		engagedPlayer = null;
+		engagedTicks = 0;
 	}
 
 	// --- Huida ----------------------------------------------------------------------
@@ -287,8 +295,8 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 		rankCache = profile.rank();
 		traits.clear();
 		traits.addAll(profile.traits());
-		// La piel se deriva del id para que un némesis se vea igual cada vez que vuelve.
-		setSkinVariant(Math.floorMod(profile.id().hashCode(), SKIN_VARIANTS));
+		// La piel se guarda en el perfil para que un némesis se vea igual cada vez que vuelve.
+		setSkinVariant(Math.floorMod(profile.appearance(), SKIN_VARIANTS));
 		setSizeScale(profile.scale());
 		applyRankModifiers(rankCache);
 		TraitEffects.applyAll(this);
@@ -462,8 +470,13 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 		return super.getVoicePitch() / Math.max(0.5f, sizeScale());
 	}
 
+	/**
+	 * Los capitanes y caudillos nunca desaparecen por distancia. Los soldados rasos sí, aunque
+	 * tengan perfil: su memoria sigue guardada y pueden volver en una emboscada. Así un servidor
+	 * con muchos jugadores no acumula orcos persistentes indefinidamente.
+	 */
 	@Override
 	public boolean removeWhenFarAway(double distanceSquared) {
-		return profileId == null && pendingRank == null && super.removeWhenFarAway(distanceSquared);
+		return !currentRank().isNamed() && pendingRank == null && super.removeWhenFarAway(distanceSquared);
 	}
 }

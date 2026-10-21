@@ -33,8 +33,12 @@ public final class OromistConfig {
 	public float nemesisLeadsAmbushChance = 0.7f;
 	public int ambushMinGrunts = 2;
 	public int ambushMaxGrunts = 4;
-	/** Solo emboscar a jugadores que llevan al menos este número de días de juego en el mundo. */
-	public int ambushGraceDays = 1;
+	/** Minutos de juego que debe acumular cada jugador antes de su primera emboscada (protege a los recién llegados). */
+	public int ambushGraceMinutes = 30;
+	/** No hay emboscada si ya hay este número de orcos cerca del jugador (evita acumulaciones en grupo). */
+	public int ambushMaxNearbyOrcs = 8;
+	/** Dimensiones donde pueden ocurrir emboscadas. */
+	public java.util.List<String> ambushDimensions = java.util.List.of("minecraft:overworld");
 
 	// --- Orcos ---
 	public float minOrcScale = 0.85f;

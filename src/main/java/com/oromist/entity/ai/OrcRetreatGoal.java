@@ -15,6 +15,7 @@ import net.minecraft.world.phys.Vec3;
 public final class OrcRetreatGoal extends Goal {
 	private static final double ESCAPE_DISTANCE = 28.0;
 	private static final int MAX_RETREAT_TICKS = 20 * 20;
+	private static final double WATCH_RADIUS = 16.0;
 
 	private final OrcEntity orc;
 	private final double speed;
@@ -52,7 +53,7 @@ public final class OrcRetreatGoal extends Goal {
 	@Override
 	public void tick() {
 		ticks++;
-		if (orc.distanceTo(threat) > ESCAPE_DISTANCE) {
+		if (orc.distanceTo(threat) > ESCAPE_DISTANCE && !isWatchedByAnyPlayer()) {
 			orc.escapeFrom(threat);
 			threat = null;
 			return;
@@ -65,6 +66,14 @@ public final class OrcRetreatGoal extends Goal {
 	@Override
 	public void stop() {
 		threat = null;
+	}
+
+	/**
+	 * En multijugador el orco solo "escapa" (desaparece) si ningún jugador está cerca,
+	 * para que nadie lo vea esfumarse delante de sus ojos.
+	 */
+	private boolean isWatchedByAnyPlayer() {
+		return orc.level().getNearestPlayer(orc, WATCH_RADIUS) != null;
 	}
 
 	private void moveAway() {

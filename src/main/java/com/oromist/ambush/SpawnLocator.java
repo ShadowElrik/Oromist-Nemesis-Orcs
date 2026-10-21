@@ -6,7 +6,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 
@@ -27,18 +30,27 @@ public interface SpawnLocator {
 		};
 	}
 
-	/** Comprueba suelo firme, espacio libre (para orcos altos) y que no haya líquidos. */
+	/**
+	 * Comprueba suelo natural firme, espacio libre (para orcos altos) y que no haya líquidos.
+	 * Exigir terreno natural evita que aparezcan sobre tejados o dentro de construcciones.
+	 */
 	static boolean isValidSpot(ServerLevel level, BlockPos pos) {
 		if (!level.isLoaded(pos) || !level.getFluidState(pos).isEmpty()) {
 			return false;
 		}
 		BlockPos below = pos.below();
-		if (!level.getBlockState(below).isFaceSturdy(level, below, Direction.UP)) {
+		BlockState ground = level.getBlockState(below);
+		if (!isNaturalGround(ground) || !ground.isFaceSturdy(level, below, Direction.UP)) {
 			return false;
 		}
 		AABB box = ModEntities.ORC.getSpawnAABB(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5).inflate(0.2, 0.0, 0.2)
 				.expandTowards(0.0, 0.7, 0.0);
 		return level.noCollision(box);
+	}
+
+	static boolean isNaturalGround(BlockState state) {
+		return state.is(BlockTags.DIRT) || state.is(BlockTags.SAND) || state.is(BlockTags.BASE_STONE_OVERWORLD)
+				|| state.is(BlockTags.TERRACOTTA) || state.is(BlockTags.SNOW) || state.is(Blocks.GRAVEL);
 	}
 
 	/** Punto aleatorio en un anillo alrededor del jugador, sobre la superficie. */

@@ -58,6 +58,7 @@ public final class OrcNemesisHooks implements OrcHooks {
 		if (!orc.isProfileApplied()) {
 			orc.applyProfile(profile.get());
 		}
+		runtime.activeOrcs().heartbeat(profile.get().id(), orc.level().getGameTime());
 		return true;
 	}
 

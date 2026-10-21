@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.oromist.OromistNPC;
 import com.oromist.nemesis.domain.NemesisRepository;
 import com.oromist.nemesis.domain.OrcProfile;
+import com.oromist.nemesis.domain.ProfileRetentionPolicy;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -19,12 +20,16 @@ import net.minecraft.world.level.saveddata.SavedDataType;
  * Implementación de {@link NemesisRepository} sobre el sistema de guardado del
  * mundo de Minecraft. Se guarda una sola vez por servidor (no por dimensión),
  * así un némesis puede perseguirte entre dimensiones.
+ *
+ * <p>La lectura es tolerante: un perfil corrupto se descarta sin perder los demás.
+ * Los límites de cuántos perfiles se conservan los define {@link ProfileRetentionPolicy}.</p>
  */
 public final class NemesisSavedData extends SavedData implements NemesisRepository {
-	/** Perfiles muertos que se conservan como historial antes de purgarse. */
-	private static final int MAX_DEAD_PROFILES = 64;
+	/** Cada cuántos cambios se revisan los límites (evita recorrer todo en cada recuerdo nuevo). */
+	private static final int PRUNE_EVERY = 32;
+	private static final ProfileRetentionPolicy RETENTION = ProfileRetentionPolicy.DEFAULT;
 
-	private static final Codec<NemesisSavedData> CODEC = NemesisCodecs.PROFILE.listOf()
+	private static final Codec<NemesisSavedData> CODEC = NemesisCodecs.lenientList(NemesisCodecs.PROFILE)
 			.fieldOf("profiles").codec()
 			.xmap(NemesisSavedData::new, data -> List.copyOf(data.profiles.values()));
 
@@ -32,12 +37,14 @@ public final class NemesisSavedData extends SavedData implements NemesisReposito
 			OromistNPC.id("nemesis"), NemesisSavedData::new, CODEC, null);
 
 	private final Map<UUID, OrcProfile> profiles = new LinkedHashMap<>();
+	private int changesSincePrune;
 
 	public NemesisSavedData() {
 	}
 
 	private NemesisSavedData(List<OrcProfile> loaded) {
 		loaded.forEach(p -> profiles.put(p.id(), p));
+		prune();
 	}
 
 	public static NemesisSavedData get(MinecraftServer server) {
@@ -62,20 +69,14 @@ public final class NemesisSavedData extends SavedData implements NemesisReposito
 
 	@Override
 	public void markChanged() {
-		pruneDeadProfiles();
+		if (++changesSincePrune >= PRUNE_EVERY) {
+			prune();
+		}
 		setDirty();
 	}
 
-	private void pruneDeadProfiles() {
-		long dead = profiles.values().stream().filter(p -> !p.isAlive()).count();
-		if (dead <= MAX_DEAD_PROFILES) {
-			return;
-		}
-		profiles.values().stream()
-				.filter(p -> !p.isAlive())
-				.limit(dead - MAX_DEAD_PROFILES)
-				.map(OrcProfile::id)
-				.toList()
-				.forEach(profiles::remove);
+	private void prune() {
+		changesSincePrune = 0;
+		RETENTION.profilesToRemove(profiles.values()).forEach(profiles::remove);
 	}
 }

@@ -20,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 public final class NemesisRuntime {
 	private final OromistConfig config;
 	private final Function<MinecraftServer, NemesisListener> listenerFactory;
+	private final ActiveOrcs activeOrcs = new ActiveOrcs();
 	private @Nullable NemesisService service;
 	private @Nullable MinecraftServer server;
 
@@ -33,6 +34,7 @@ public final class NemesisRuntime {
 		ServerLifecycleEvents.SERVER_STOPPED.register(stopped -> {
 			service = null;
 			server = null;
+			activeOrcs.clear();
 		});
 	}
 
@@ -55,6 +57,11 @@ public final class NemesisRuntime {
 
 	public Optional<MinecraftServer> server() {
 		return Optional.ofNullable(server);
+	}
+
+	/** Orcos con perfil cuya entidad está cargada y activa en este momento. */
+	public ActiveOrcs activeOrcs() {
+		return activeOrcs;
 	}
 
 	public OromistConfig config() {
