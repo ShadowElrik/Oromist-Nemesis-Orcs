@@ -43,12 +43,13 @@ public final class NemesisService {
 
 	// --- Creación y consulta --------------------------------------------------------
 
-	public OrcProfile createProfile(OrcArchetype archetype, float scale, OrcRank startingRank) {
+	public OrcProfile createProfile(OrcArchetype archetype, float scale, int appearance, OrcRank startingRank) {
 		OrcProfile profile = new OrcProfile(
 				UUID.randomUUID(),
 				nameGenerator.generate(random),
 				archetype,
 				scale,
+				appearance,
 				traitRoller.rollInitial(startingRank, random),
 				List.of(),
 				startingRank.powerRequired(),

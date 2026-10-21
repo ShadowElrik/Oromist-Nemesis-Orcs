@@ -25,7 +25,7 @@ public final class OrcProfiles {
 			return existing.get();
 		}
 		OrcRank rank = orc.pendingRank().orElse(OrcRank.GRUNT);
-		OrcProfile profile = service.createProfile(orc.archetype(), orc.sizeScale(), rank);
+		OrcProfile profile = service.createProfile(orc.archetype(), orc.sizeScale(), orc.skinVariant(), rank);
 		boolean freshBody = rank != OrcRank.GRUNT;
 		orc.bindProfile(profile, service.beginIncarnation(profile), freshBody);
 		return profile;

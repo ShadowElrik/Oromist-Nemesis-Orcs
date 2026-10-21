@@ -1,6 +1,7 @@
 package com.oromist.ambush;
 
 import com.oromist.config.OromistConfig;
+import com.oromist.entity.OrcEntity;
 import com.oromist.nemesis.domain.NemesisService;
 import com.oromist.nemesis.domain.OrcProfile;
 import com.oromist.nemesis.game.NemesisRuntime;
@@ -11,9 +12,11 @@ import java.util.Optional;
 import java.util.UUID;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
 
@@ -25,7 +28,7 @@ import net.minecraft.world.Difficulty;
  * {@link AmbushSpawner} que monte el ataque, preferentemente liderado por su némesis.</p>
  */
 public final class AmbushDirector {
-	private static final long TICKS_PER_DAY = 24000L;
+	private static final double CROWD_RADIUS = 48.0;
 
 	private final NemesisRuntime runtime;
 	private final AmbushSpawner spawner;
@@ -47,6 +50,8 @@ public final class AmbushDirector {
 			lastAmbush.clear();
 			ticksUntilCheck = 0;
 		});
+		// La posición previa solo sirve mientras el jugador está conectado.
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> history.forget(handler.getPlayer().getUUID()));
 	}
 
 	private void tick(MinecraftServer server) {
@@ -55,6 +60,7 @@ public final class AmbushDirector {
 			return;
 		}
 		ticksUntilCheck = Math.max(20, config.ambushCheckIntervalSeconds * 20);
+		runtime.activeOrcs().purge(server.overworld().getGameTime());
 		runtime.service().ifPresent(service -> {
 			for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 				evaluate(player, service, config);
@@ -85,8 +91,10 @@ public final class AmbushDirector {
 		ServerLevel level = (ServerLevel) player.level();
 		RandomSource random = level.getRandom();
 
+		// Un némesis que ahora mismo está en el mundo (quizá peleando con otro jugador) no se "teletransporta".
+		long now = level.getGameTime();
 		Optional<OrcProfile> nemesis = random.nextFloat() < config.nemesisLeadsAmbushChance
-				? service.nemesisOf(player.getUUID(), profile -> true)
+				? service.nemesisOf(player.getUUID(), profile -> !runtime.activeOrcs().isActive(profile.id(), now))
 				: Optional.empty();
 		boolean newCaptain = nemesis.isEmpty() && random.nextFloat() < 0.3f;
 		int grunts = config.ambushMinGrunts + random.nextInt(Math.max(1, config.ambushMaxGrunts - config.ambushMinGrunts + 1));
@@ -109,13 +117,24 @@ public final class AmbushDirector {
 		if (player.isCreative() || player.isSpectator() || !player.isAlive() || level.getDifficulty() == Difficulty.PEACEFUL) {
 			return false;
 		}
-		long now = level.getGameTime();
-		if (now < config.ambushGraceDays * TICKS_PER_DAY) {
-			return false;
+		if (!config.ambushDimensions.contains(level.dimension().identifier().toString())) {
+			return false; // p. ej. el Nether: su "superficie" es el techo de bedrock.
 		}
+		long playedTicks = player.getStats().getValue(Stats.CUSTOM.get(Stats.PLAY_TIME));
+		if (playedTicks < config.ambushGraceMinutes * 60L * 20L) {
+			return false; // Jugador recién llegado al servidor.
+		}
+		if (nearbyOrcs(player, level) >= config.ambushMaxNearbyOrcs) {
+			return false; // Ya hay suficientes orcos alrededor (otra emboscada, una aldea...).
+		}
+		long now = level.getGameTime();
 		Long last = lastAmbush.get(player.getUUID());
 		long cooldown = config.ambushCooldownMinutes * 60L * 20L;
 		return last == null || now - last >= cooldown;
+	}
+
+	private static int nearbyOrcs(ServerPlayer player, ServerLevel level) {
+		return level.getEntitiesOfClass(OrcEntity.class, player.getBoundingBox().inflate(CROWD_RADIUS)).size();
 	}
 
 	private static float chanceFor(PlayerActivity activity, OromistConfig config) {

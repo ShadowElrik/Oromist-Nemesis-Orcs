@@ -22,6 +22,7 @@ te emboscan en tu casa, en la mina o de viaje, y viven en aldeas propias.
 ### Comandos
 
 - `/nemesis` — lista los orcos que te odian; el primero (☠) es tu némesis.
+- `/nemesis player <jugador>` — (operadores) lo mismo para otro jugador.
 - `/nemesis ambush <home|mining|travel>` — (operadores) fuerza una emboscada para probar.
 - Para encontrar una aldea: `/locate structure oromist-npc:orc_village`.
 
@@ -29,6 +30,27 @@ te emboscan en tu casa, en la mina o de viaje, y viven en aldeas propias.
 
 `config/oromist-npc.json` se crea en el primer arranque: probabilidades de emboscada por
 actividad, tiempo entre emboscadas, probabilidad de engañar a la muerte, rango de alturas, etc.
+
+Opciones pensadas para servidores multijugador:
+
+| Opción | Por defecto | Qué hace |
+|---|---|---|
+| `ambushGraceMinutes` | 30 | Minutos jugados que necesita cada jugador antes de su primera emboscada. |
+| `ambushMaxNearbyOrcs` | 8 | No hay emboscada si ya hay esa cantidad de orcos cerca (grupos de jugadores, aldeas). |
+| `ambushDimensions` | `["minecraft:overworld"]` | Dimensiones donde puede haber emboscadas. |
+| `dialogueCooldownSeconds` | 90 | Espera mínima entre frases de un mismo orco a un mismo jugador. |
+
+## Multijugador
+
+- El mod se instala **en el servidor y en todos los clientes** (registra una entidad nueva).
+- La memoria de los orcos y la configuración viven solo en el servidor.
+- Cada jugador tiene su propio némesis; un mismo orco puede odiar a varios jugadores.
+- Un némesis que está activo en el mundo (por ejemplo, peleando con otro jugador) no
+  aparece en la emboscada de otro jugador.
+- Los soldados rasos desaparecen al alejarse los jugadores, como los mobs normales; su
+  memoria se conserva y pueden volver. Capitanes y caudillos persisten siempre.
+- Se conservan como máximo 256 soldados rasos y 64 orcos muertos en la memoria del
+  mundo; los capitanes y caudillos nunca se descartan.
 
 ## Arquitectura
 
@@ -93,8 +115,13 @@ com.oromist
 
 ```
 ./gradlew runClient     # abre el juego con el mod
-./gradlew build         # genera el .jar en build/libs/
+./gradlew test          # ejecuta las pruebas automáticas
+./gradlew build         # ejecuta las pruebas y genera el .jar en build/libs/
 ```
+
+Las pruebas (`src/test`) cubren las reglas del sistema Némesis, los diálogos (incluido que
+toda frase exista en todos los idiomas), el guardado tolerante a datos corruptos y la
+política de retención de perfiles. GitHub Actions las ejecuta en cada push.
 
 Prueba rápida: en creativo, usa el huevo de orco (pestaña de huevos), pasa a supervivencia,
 deja que un orco te mate y vuelve a buscarlo: te recordará. O usa `/nemesis ambush home`.

@@ -20,11 +20,14 @@ import java.util.UUID;
 public final class OrcProfile {
 	/** Máximo de recuerdos guardados; se descartan primero los menos importantes. */
 	public static final int MAX_MEMORIES = 24;
+	/** Apariencia no registrada (perfiles creados por la versión 0.1.0). */
+	public static final int UNKNOWN_APPEARANCE = -1;
 
 	private final UUID id;
 	private OrcName name;
 	private final OrcArchetype archetype;
 	private final float scale;
+	private final int appearance;
 	private final Set<OrcTrait> traits;
 	private final List<Memory> memories;
 	private int power;
@@ -32,12 +35,13 @@ public final class OrcProfile {
 	private int incarnation;
 	private boolean alive;
 
-	public OrcProfile(UUID id, OrcName name, OrcArchetype archetype, float scale, Set<OrcTrait> traits,
+	public OrcProfile(UUID id, OrcName name, OrcArchetype archetype, float scale, int appearance, Set<OrcTrait> traits,
 			List<Memory> memories, int power, int timesCheatedDeath, int incarnation, boolean alive) {
 		this.id = Objects.requireNonNull(id, "id");
 		this.name = Objects.requireNonNull(name, "name");
 		this.archetype = Objects.requireNonNull(archetype, "archetype");
 		this.scale = scale;
+		this.appearance = appearance;
 		this.traits = traits.isEmpty() ? EnumSet.noneOf(OrcTrait.class) : EnumSet.copyOf(traits);
 		this.memories = new ArrayList<>(memories);
 		this.power = power;
@@ -68,6 +72,15 @@ public final class OrcProfile {
 	/** Multiplicador de tamaño (1.0 = altura de un jugador). */
 	public float scale() {
 		return scale;
+	}
+
+	/**
+	 * Variante visual (piel) del orco, para que se vea igual cada vez que reaparece.
+	 * La capa de presentación decide cómo interpretarla.
+	 */
+	public int appearance() {
+		// Compatibilidad: los perfiles antiguos usaban el hash del id para elegir la piel.
+		return appearance == UNKNOWN_APPEARANCE ? id.hashCode() : appearance;
 	}
 
 	public Set<OrcTrait> traits() {
@@ -167,6 +180,16 @@ public final class OrcProfile {
 		return memories.stream()
 				.filter(m -> m.isAbout(playerId) && m.type() != MemoryType.FIRST_ENCOUNTER)
 				.max(Comparator.comparingInt((Memory m) -> m.type().dialoguePriority()).thenComparingLong(Memory::gameTime));
+	}
+
+	/** Momento del recuerdo más reciente, o {@code Long.MIN_VALUE} si no recuerda nada. */
+	public long lastMemoryTime() {
+		return memories.stream().mapToLong(Memory::gameTime).max().orElse(Long.MIN_VALUE);
+	}
+
+	/** Rencor total contra todos los jugadores: mide lo "importante" que es este orco. */
+	public int totalGrudge() {
+		return memories.stream().mapToInt(m -> m.type().grudgeWeight()).sum();
 	}
 
 	/** Cuánto odia este orco al jugador: base para elegir al némesis. */

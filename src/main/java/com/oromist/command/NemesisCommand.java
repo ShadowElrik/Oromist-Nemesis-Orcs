@@ -15,6 +15,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,10 +24,14 @@ import net.minecraft.server.level.ServerPlayer;
  * Comando {@code /nemesis}:
  * <ul>
  *   <li>{@code /nemesis} — lista los orcos que te odian (el primero es tu némesis).</li>
+ *   <li>{@code /nemesis player <jugador>} — (operadores) lo mismo para otro jugador.</li>
  *   <li>{@code /nemesis ambush <home|mining|travel>} — (operadores) fuerza una emboscada para probar.</li>
  * </ul>
  */
 public final class NemesisCommand {
+	/** Máximo de orcos mostrados, para no inundar el chat en partidas largas. */
+	private static final int MAX_LISTED = 10;
+
 	private final NemesisRuntime runtime;
 	private final AmbushDirector ambushDirector;
 
@@ -44,13 +49,17 @@ public final class NemesisCommand {
 		for (PlayerActivity activity : PlayerActivity.values()) {
 			ambush.then(Commands.literal(activityName(activity)).executes(ctx -> forceAmbush(ctx, activity)));
 		}
+		// /nemesis player <jugador>: para que los administradores consulten a cualquier jugador.
+		var ofPlayer = Commands.literal("player").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+				.then(Commands.argument("target", EntityArgument.player())
+						.executes(ctx -> list(ctx, EntityArgument.getPlayer(ctx, "target"))));
 		dispatcher.register(Commands.literal("nemesis")
-				.executes(this::list)
+				.executes(ctx -> list(ctx, ctx.getSource().getPlayerOrException()))
+				.then(ofPlayer)
 				.then(ambush));
 	}
 
-	private int list(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-		ServerPlayer player = ctx.getSource().getPlayerOrException();
+	private int list(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
 		NemesisService service = runtime.service().orElse(null);
 		if (service == null) {
 			return 0;
@@ -61,10 +70,15 @@ public final class NemesisCommand {
 			return 0;
 		}
 		ctx.getSource().sendSuccess(() -> Component.translatable("command.oromist-npc.header").withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD), false);
-		for (int i = 0; i < enemies.size(); i++) {
+		int shown = Math.min(enemies.size(), MAX_LISTED);
+		for (int i = 0; i < shown; i++) {
 			OrcProfile profile = enemies.get(i);
 			boolean isNemesis = i == 0;
 			ctx.getSource().sendSuccess(() -> describe(profile, player, isNemesis), false);
+		}
+		int hidden = enemies.size() - shown;
+		if (hidden > 0) {
+			ctx.getSource().sendSuccess(() -> Component.translatable("command.oromist-npc.more", hidden).withStyle(ChatFormatting.GRAY), false);
 		}
 		return enemies.size();
 	}
