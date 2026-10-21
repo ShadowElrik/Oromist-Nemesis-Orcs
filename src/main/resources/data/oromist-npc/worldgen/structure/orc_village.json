@@ -1,0 +1,7 @@
+{
+  "type": "oromist-npc:orc_village",
+  "biomes": "#oromist-npc:has_structure/orc_village",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin"
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "oromist-npc:item/orc_spawn_egg"
+  }
+}

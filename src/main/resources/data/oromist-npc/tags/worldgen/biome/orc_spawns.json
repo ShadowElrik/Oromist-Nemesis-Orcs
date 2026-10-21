@@ -1,0 +1,8 @@
+{
+  "values": [
+    "#oromist-npc:has_structure/orc_village",
+    "minecraft:forest",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:old_growth_pine_taiga"
+  ]
+}

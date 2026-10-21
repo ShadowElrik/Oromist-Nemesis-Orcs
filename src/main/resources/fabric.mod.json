@@ -1,0 +1,28 @@
+{
+	"schemaVersion": 1,
+	"id": "oromist-npc",
+	"version": "${version}",
+	"name": "Oromist: Nemesis Orcs",
+	"description": "Orcos con sistema Némesis: recuerdan al jugador, ascienden de rango, engañan a la muerte, te emboscan en casa, en la mina o de viaje, y viven en aldeas propias.",
+	"authors": [
+		"Oromist"
+	],
+	"contact": {},
+	"license": "CC0-1.0",
+	"icon": "assets/oromist-npc/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.oromist.OromistNPC"
+		],
+		"client": [
+			"com.oromist.client.OromistNPCClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
