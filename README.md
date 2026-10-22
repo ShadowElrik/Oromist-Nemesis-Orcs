@@ -12,7 +12,11 @@ te emboscan en tu casa, en la mina o de viaje, y viven en aldeas propias.
 
 | Característica | Detalle |
 |---|---|
-| **Combate** | Espadachines (espada), hacheros (hacha), arqueros (arco) y ballesteros (ballesta). La IA cambia de táctica según el arma que empuñan, incluso si la cambian en pleno combate. |
+| **Combate** | Espadachines (espada), hacheros (hacha), arqueros (arco), ballesteros (ballesta), **jinetes** (lanza, en caballo zombi) y **chamanes** (magia). La IA cambia de táctica según el arma que empuñan, incluso si la cambian en pleno combate. |
+| **Chamanes** | Lanzan *fuego verde* (no quema bloques), hacen brotar *garras de hueso* si te acercas, dan fuerza y regeneración a los orcos que luchan cerca y hacen más probable que un capitán caído vuelva. |
+| **Jinetes** | Cabalgan caballos zombi y embisten con lanza. Escoltan las emboscadas de viaje. Si les matas la montura, lo recuerdan. |
+| **Combate en grupo** | *Grito de guerra* que alerta a los orcos cercanos, *liderazgo* (los soldados cerca de un capitán pegan más fuerte y no huyen) y *flanqueo* (rodean al objetivo). |
+| **Información de guerra** | Los rasgos de cada orco están ocultos hasta que los descubres: viéndolos en combate, **interrogando** a un soldado malherido (agachado + clic derecho) o leyendo **notas de guerra**. |
 | **Alturas distintas** | Cada orco tiene su propia escala (por defecto 0.85×–1.35×), con más vida si es más grande y voz más grave. |
 | **Rangos** | Soldado → Capitán → Caudillo. Suben al matar jugadores, sobrevivir a la muerte o hacerte huir. Capitanes y caudillos tienen nombre propio ("Gorbag el Cruel") y mejor equipo. |
 | **Rasgos** | Fortalezas (Bruto, Veloz, Piel gruesa, Inmune a flechas, Berserker) y debilidades (Teme al fuego, Cobarde, Frágil). |
@@ -25,7 +29,8 @@ te emboscan en tu casa, en la mina o de viaje, y viven en aldeas propias.
 
 ### Comandos
 
-- `/nemesis` — lista los orcos que te odian; el primero (☠) es tu némesis.
+- `/nemesis` — lista los orcos que te odian; el primero (☠) es tu némesis. Los rasgos que aún no
+  descubriste aparecen como `???`.
 - `/nemesis player <jugador>` — (operadores) lo mismo para otro jugador.
 - `/nemesis ambush <home|mining|travel>` — (operadores) fuerza una emboscada para probar.
 - Para encontrar una aldea: `/locate structure oromist-npc:orc_village`.
@@ -43,12 +48,14 @@ Opciones pensadas para servidores multijugador:
 | `ambushMaxNearbyOrcs` | 8 | No hay emboscada si ya hay esa cantidad de orcos cerca (grupos de jugadores, aldeas). |
 | `ambushDimensions` | `["minecraft:overworld"]` | Dimensiones donde puede haber emboscadas. |
 | `dialogueCooldownSeconds` | 90 | Espera mínima entre frases de un mismo orco a un mismo jugador. |
+| `shamanCheatDeathBonus` | 0.2 | Probabilidad extra de que un capitán vuelva de la muerte si un chamán lo vio caer. |
 
 ## Multijugador
 
 - El mod se instala **en el servidor y en todos los clientes** (registra una entidad nueva).
 - La memoria de los orcos y la configuración viven solo en el servidor.
 - Cada jugador tiene su propio némesis; un mismo orco puede odiar a varios jugadores.
+- Cada jugador tiene su propia información de guerra: lo que descubre uno no lo sabe el otro.
 - Un némesis que está activo en el mundo (por ejemplo, peleando con otro jugador) no
   aparece en la emboscada de otro jugador.
 - Los soldados rasos desaparecen al alejarse los jugadores, como los mobs normales; su
@@ -66,13 +73,18 @@ com.oromist
 ├── OromistNPC                 Raíz de composición: crea y conecta todo (único lugar con "new" de servicios)
 ├── nemesis
 │   ├── domain                 ★ Java puro: OrcProfile, Memory, OrcRank, OrcTrait, NemesisService,
-│   │                            NemesisRepository (puerto), TraitRoller, OrcNameGenerator, NemesisListener
+│   │                            IntelService (rasgos descubiertos), NemesisRepository (puerto),
+│   │                            TraitRoller, OrcNameGenerator, NemesisListener
 │   ├── persistence            Adaptador de guardado: NemesisSavedData (SavedData del mundo) + codecs
-│   └── game                   Adaptadores del juego: eventos de combate, hooks del orco, anuncios
+│   └── game                   Adaptadores del juego: eventos de combate, hooks del orco, anuncios,
+│                                interrogatorios y notas de guerra (IntelEvents)
 ├── dialogue                   ★ Java puro: DialogueSelector (estrategia), MemoryDialogueSelector
 │   └── game                   ChatDialogueSpeaker: muestra las frases en el chat
-├── entity                     OrcEntity, equipamiento (OrcLoadouts), rasgos → efectos (TraitEffects)
-│   └── ai                     WeaponCombatStrategy (arco/ballesta/cuerpo a cuerpo), retirada
+├── entity                     OrcEntity, equipamiento (OrcLoadouts), rasgos → efectos (TraitEffects),
+│   │                            monturas (OrcMounts), combate en grupo (OrcSquad)
+│   ├── ai                     WeaponCombatStrategy (arco/ballesta/bastón/lanza/cuerpo a cuerpo),
+│   │                            hechizos del chamán, flanqueo, retirada
+│   └── magic                  Hechizos del chamán (ShamanSpells) y el fuego verde (GreenFireball)
 ├── ambush                     ActivityDetector (casa/minería/viaje), SpawnLocator, AmbushDirector
 ├── worldgen                   Estructura de aldea, planificador, pieza genérica y edificios
 │   └── buildings              Un archivo por edificio (solo describen bloques)
@@ -102,6 +114,8 @@ com.oromist
 | Un arma nueva (p. ej. lanza) | Nueva `WeaponCombatStrategy` y añadirla a `WeaponCombatStrategy.DEFAULTS`; el arma en `OrcLoadouts`. |
 | Un rasgo | Valor en `OrcTrait` + su efecto en `TraitEffects` + traducción `trait.oromist-npc.*`. |
 | Frases de diálogo | Añadir `dialogue.oromist-npc.<categoría>.<n>` en los tres `lang/*.json` (ver `LORE.md`); no hace falta tocar código. |
+| Un hechizo de chamán | Un método en `ShamanSpells` y decidir cuándo lanzarlo en `ShamanSpellGoal` (o en una meta nueva). |
+| Un arquetipo | Valor en `OrcArchetype` (con su `CombatStyle`), su arma en `OrcLoadouts` y su peso de aparición. |
 | Un edificio | Clase que implemente `OrcBuilding`, registrarla en `OrcBuildings` y pedirla en `VillageLayoutPlanner`. |
 | Una situación de emboscada | Valor en `PlayerActivity` + un `ActivityDetector` + un `SpawnLocator`. |
 | Una reacción a ascensos/muertes | Implementar `NemesisListener` y registrarlo en `NemesisRuntime`. |
@@ -123,9 +137,15 @@ com.oromist
 ./gradlew build         # ejecuta las pruebas y genera el .jar en build/libs/
 ```
 
-Las pruebas (`src/test`) cubren las reglas del sistema Némesis, los diálogos (incluido que
-toda frase exista en todos los idiomas), el guardado tolerante a datos corruptos y la
-política de retención de perfiles. GitHub Actions las ejecuta en cada push.
+Hay dos tipos de pruebas automáticas, y GitHub Actions ejecuta ambas en cada push:
+
+- **Pruebas unitarias** (`src/test`, JUnit): las reglas del sistema Némesis, la información de
+  guerra, los diálogos (incluido que toda frase exista en todos los idiomas), el guardado
+  tolerante a datos corruptos y la política de retención de perfiles.
+- **Pruebas dentro del juego** (`src/gametest`, Fabric GameTest): arrancan un servidor de
+  Minecraft real y comprueban que los jinetes montan (y que su montura desaparece con ellos),
+  que el fuego verde no quema bloques, las garras de hueso, *Sangre de guerra*, el grito de
+  guerra, el liderazgo y el interrogatorio.
 
 Prueba rápida: en creativo, usa el huevo de orco (pestaña de huevos), pasa a supervivencia,
 deja que un orco te mate y vuelve a buscarlo: te recordará. O usa `/nemesis ambush home`.

@@ -25,6 +25,7 @@ public class OrcFlankGoal extends Goal {
 	private static final int MAX_DURATION = 60;
 	private static final int COOLDOWN = 200;
 	private static final double SPEED = 1.25;
+	private static final int CHECK_ONE_IN = 10;
 
 	private final OrcEntity orc;
 	private Vec3 flankPoint;
@@ -44,6 +45,10 @@ public class OrcFlankGoal extends Goal {
 		}
 		LivingEntity target = orc.getTarget();
 		if (target == null || !orc.archetype().isMelee() || orc.isPassenger()) {
+			return false;
+		}
+		// Se evalúa de vez en cuando (no en cada tick) para no buscar aliados constantemente.
+		if (orc.getRandom().nextInt(CHECK_ONE_IN) != 0) {
 			return false;
 		}
 		double distance = orc.distanceTo(target);
