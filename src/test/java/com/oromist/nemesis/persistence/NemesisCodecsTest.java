@@ -97,4 +97,30 @@ class NemesisCodecsTest {
 
 		assertEquals(2, loaded.size());
 	}
+
+	@Test
+	void discoveredTraitsAndNewMemoriesAreSaved() {
+		OrcProfile original = sampleProfile();
+		original.revealTraitTo(PLAYER, OrcTrait.COWARD);
+		original.remember(new Memory(MemoryType.MOUNT_KILLED, PLAYER, "Steve", 200000L, "minecraft:savanna"));
+		original.remember(new Memory(MemoryType.INTERROGATED, PLAYER, "Steve", 300000L, "minecraft:taiga"));
+
+		OrcProfile copy = decode(encode(original));
+
+		assertEquals(EnumSet.of(OrcTrait.COWARD), copy.knownTraits(PLAYER));
+		assertEquals(EnumSet.of(OrcTrait.BRUTE), copy.hiddenTraits(PLAYER));
+		assertEquals(original.memories(), copy.memories());
+	}
+
+	/** Los perfiles anteriores a la 0.4.0 no tienen "revealed": todo empieza oculto. */
+	@Test
+	void profilesWithoutIntelLoadWithEverythingHidden() {
+		JsonObject json = encode(sampleProfile());
+		json.remove("revealed");
+
+		OrcProfile loaded = decode(json);
+
+		assertTrue(loaded.knownTraits(PLAYER).isEmpty());
+		assertEquals(loaded.traits(), loaded.hiddenTraits(PLAYER));
+	}
 }

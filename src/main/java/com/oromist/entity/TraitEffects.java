@@ -5,6 +5,7 @@ import com.oromist.nemesis.domain.OrcTrait;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.DamageTypeTags;
@@ -20,6 +21,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
  */
 public final class TraitEffects {
 	private static final Map<OrcTrait, TraitEffect> EFFECTS = new EnumMap<>(OrcTrait.class);
+	/** Fracción de vida por debajo de la cual el berserker se enfurece. */
+	private static final float BERSERKER_THRESHOLD = 0.4f;
 
 	static {
 		EFFECTS.put(OrcTrait.BRUTE, attribute(Attributes.ATTACK_DAMAGE, 0.4, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
@@ -42,7 +45,7 @@ public final class TraitEffects {
 				if (damage == null) {
 					return;
 				}
-				boolean enraged = orc.getHealth() < orc.getMaxHealth() * 0.4f;
+				boolean enraged = isEnraged(orc);
 				if (enraged && !damage.hasModifier(id)) {
 					damage.addTransientModifier(new AttributeModifier(id, 0.5, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
 				} else if (!enraged && damage.hasModifier(id)) {
@@ -68,12 +71,26 @@ public final class TraitEffects {
 		}
 	}
 
-	public static float modifyIncomingDamage(OrcEntity orc, DamageSource source, float amount) {
+	/**
+	 * Aplica los rasgos al daño recibido.
+	 *
+	 * @param noticed recibe cada rasgo que cambió el daño, para que el atacante pueda "descubrirlo"
+	 */
+	public static float modifyIncomingDamage(OrcEntity orc, DamageSource source, float amount, Consumer<OrcTrait> noticed) {
 		float result = amount;
 		for (OrcTrait trait : orc.traits()) {
-			result = effect(trait).modifyIncomingDamage(source, result);
+			float modified = effect(trait).modifyIncomingDamage(source, result);
+			if (modified != result) {
+				noticed.accept(trait);
+			}
+			result = modified;
 		}
 		return result;
+	}
+
+	/** ¿Está el berserker enfurecido (poca vida)? */
+	public static boolean isEnraged(OrcEntity orc) {
+		return orc.traits().contains(OrcTrait.BERSERKER) && orc.getHealth() < orc.getMaxHealth() * BERSERKER_THRESHOLD;
 	}
 
 	private static TraitEffect effect(OrcTrait trait) {

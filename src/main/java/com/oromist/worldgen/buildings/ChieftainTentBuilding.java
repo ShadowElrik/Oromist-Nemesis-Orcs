@@ -1,5 +1,6 @@
 package com.oromist.worldgen.buildings;
 
+import com.oromist.nemesis.domain.OrcArchetype;
 import com.oromist.nemesis.domain.OrcRank;
 import com.oromist.worldgen.BuildContext;
 import com.oromist.worldgen.OrcBuilding;
@@ -84,7 +85,8 @@ public final class ChieftainTentBuilding implements OrcBuilding {
 
 		OrcRank leaderRank = c.random().nextFloat() < WARCHIEF_CHANCE ? OrcRank.WARCHIEF : OrcRank.CAPTAIN;
 		c.spawnOrc(5, 1, 6, leaderRank, null);
-		c.spawnOrc(3, 1, 3, null, null);
+		// El chamán siempre acompaña al jefe: sus rituales lo traen de vuelta de la muerte.
+		c.spawnOrc(3, 1, 3, null, OrcArchetype.SHAMAN);
 		c.spawnOrc(7, 1, 3, null, null);
 	}
 }

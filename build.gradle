@@ -22,6 +22,17 @@ loom {
 	}
 }
 
+// Pruebas dentro de un servidor de Minecraft real (src/gametest). Se ejecutan con ./gradlew build.
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "oromist-npc-gametest"
+		enableGameTests = true
+		enableClientGameTests = false
+		eula = true // Aceptar el EULA de Minecraft es necesario para arrancar el servidor de pruebas.
+	}
+}
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"

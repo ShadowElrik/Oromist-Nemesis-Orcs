@@ -1,5 +1,6 @@
 package com.oromist.worldgen.buildings;
 
+import com.oromist.nemesis.domain.OrcArchetype;
 import com.oromist.worldgen.BuildContext;
 import com.oromist.worldgen.OrcBuilding;
 import net.minecraft.core.Direction;
@@ -7,6 +8,8 @@ import net.minecraft.world.level.block.Blocks;
 
 /** Hoguera central de la aldea, rodeada de bancos y estacas con calaveras. */
 public final class BonfireBuilding implements OrcBuilding {
+	private static final float RIDER_CHANCE = 0.5f;
+
 	@Override
 	public String id() {
 		return "bonfire";
@@ -56,6 +59,7 @@ public final class BonfireBuilding implements OrcBuilding {
 		}
 
 		c.spawnOrc(2, 1, 4, null, null);
-		c.spawnOrc(6, 1, 4, null, null);
+		// A veces un jinete descansa junto al fuego; su caballo zombi aparece con él.
+		c.spawnOrc(6, 1, 4, null, c.random().nextFloat() < RIDER_CHANCE ? OrcArchetype.LANCER : null);
 	}
 }

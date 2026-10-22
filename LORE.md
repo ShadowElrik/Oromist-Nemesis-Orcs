@@ -54,22 +54,40 @@ Los epítetos cuentan su historia: *el Cruel*, *Cazahumanos*, *Cruzabordes*, *de
 | Memoria, rangos, engañar a la muerte (chamanes) | ✅ Sistema Némesis |
 | Aldeas con hoguera, tienda del caudillo, fragua, torres | ✅ |
 | Huertos de papas y betarragas con ahumador | ✅ (0.3.0) |
-| **Chamanes con magia** | 🔜 Planeado |
-| **Jinetes en caballo zombi** | 🔜 Planeado |
+| **Chamanes con magia** | ✅ (0.4.0) |
+| **Jinetes en caballo zombi** | ✅ (0.4.0) |
+| Gritos de guerra, liderazgo y lealtad (los capitanes no se delatan) | ✅ (0.4.0) |
 
-## Planeado
+## Los chamanes
 
-### Chamanes (magia)
-Un nuevo arquetipo, `SHAMAN`, que no lucha cuerpo a cuerpo:
-- **Fuego verde**: proyectil mágico a distancia (basado en las bolas de fuego vanilla, con partículas propias).
-- **Sangre de guerra**: cura o enfurece a los orcos cercanos (efectos de fuerza/regeneración).
-- **Hechizo de retorno**: si hay un chamán vivo en la aldea, los capitanes tienen más probabilidad de engañar a la muerte.
-- Rasgos posibles: *Maestro del fuego*, *Débil en cuerpo a cuerpo*.
+Los chamanes no luchan cuerpo a cuerpo. Llevan un bastón, una calavera como máscara y una
+túnica verde musgo, y se quedan atrás:
 
-### Jinetes en caballo zombi
-- Algunos capitanes y exploradores aparecen **montados en un caballo zombi** (más rápidos en emboscadas de viaje).
-- Si matas la montura, el orco desmonta y lo recuerda (*"¡Mi montura! ¿Dónde está mi montura?"*).
-- Posible establo en las aldeas.
+- **Fuego verde**: una llama mágica que quema a su objetivo. No prende los bloques: los orcos
+  quieren tus casas en pie para saquearlas.
+- **Garras de hueso**: si un humano se les acerca, hacen brotar colmillos del suelo.
+- **Sangre de guerra**: enardecen a los orcos que luchan cerca (fuerza y regeneración).
+- **Hechizo de retorno**: un chamán que ve caer a un capitán puede llevarse su cuerpo y
+  coserlo. Por eso cada jefe de aldea tiene un chamán en su tienda.
+
+## Los jinetes
+
+Los jinetes cabalgan caballos zombi y embisten con lanza, se alejan y vuelven a embestir. Patrullan
+los caminos: si te emboscan mientras viajas, vendrán a caballo. Si matas su montura, el jinete
+sigue a pie... y no lo olvida (*"¡Mi montura! ¿Qué le hiciste a mi montura?"*).
+
+## Información de guerra
+
+Ningún orco muestra sus debilidades. Para saber que tu némesis teme al fuego tienes que
+**verlo** en combate, **interrogar** a un soldado malherido (agachado + clic derecho) o leer
+unas **notas de guerra**. Los soldados rasos hablan para salvar la vida; los capitanes
+prefieren morir. El que habla lo recordará: la humillación pesa más que una herida.
+
+## Ideas para el futuro
+
+- Establo de caballos zombi en las aldeas.
+- Más hechizos de chamán y rasgos propios (*Maestro del fuego*).
+- Asaltos orcos a aldeas de aldeanos.
 
 ## Cómo escribir más frases
 
@@ -96,3 +114,8 @@ Argumentos disponibles en las frases: `%1$s` jugador, `%2$s` días desde el recu
 | `promoted` | Asciende de rango |
 | `ambush_home` / `ambush_mining` / `ambush_travel` | Te embosca en casa / minando / viajando |
 | `dying` | Sus últimas palabras |
+| `mount_lost` | Acabas de matar su montura |
+| `mount_killed` | Le mataste la montura antes |
+| `interrogation_talk` | Cede al interrogatorio |
+| `interrogation_refuse` | Un capitán se niega a hablar |
+| `interrogated` | Lo obligaste a hablar antes |

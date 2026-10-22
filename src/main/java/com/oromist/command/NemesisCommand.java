@@ -91,21 +91,30 @@ public final class NemesisCommand {
 				.append(Component.literal(", ").withStyle(ChatFormatting.DARK_GRAY))
 				.append(Component.translatable(profile.archetype().translationKey()));
 		if (!profile.traits().isEmpty()) {
-			line.append(Component.literal(" ["));
-			boolean first = true;
-			for (OrcTrait trait : profile.traits()) {
-				if (!first) {
-					line.append(Component.literal(", "));
-				}
-				ChatFormatting color = trait.kind() == OrcTrait.TraitKind.STRENGTH ? ChatFormatting.GOLD : ChatFormatting.AQUA;
-				line.append(Component.translatable(trait.translationKey()).withStyle(color));
-				first = false;
-			}
-			line.append(Component.literal("]"));
+			line.append(Component.literal(" [")).append(traitList(profile, player)).append(Component.literal("]"));
 		}
 		line.append(Component.translatable("command.oromist-npc.grudge", profile.grudgeAgainst(player.getUUID()))
 				.withStyle(ChatFormatting.GRAY));
 		return line;
+	}
+
+	/**
+	 * Rasgos conocidos por su nombre y los demás como "???": hay que descubrirlos en combate,
+	 * interrogando orcos o leyendo notas de guerra.
+	 */
+	private static Component traitList(OrcProfile profile, ServerPlayer player) {
+		MutableComponent list = Component.empty();
+		boolean first = true;
+		for (OrcTrait trait : profile.knownTraits(player.getUUID())) {
+			list.append(first ? Component.empty() : Component.literal(", ")).append(OrcDisplayNames.traitName(trait));
+			first = false;
+		}
+		for (int i = 0; i < profile.hiddenTraits(player.getUUID()).size(); i++) {
+			list.append(first ? Component.empty() : Component.literal(", "))
+					.append(Component.translatable("command.oromist-npc.unknown_trait").withStyle(ChatFormatting.DARK_GRAY));
+			first = false;
+		}
+		return list;
 	}
 
 	private int forceAmbush(CommandContext<CommandSourceStack> ctx, PlayerActivity activity) throws CommandSyntaxException {

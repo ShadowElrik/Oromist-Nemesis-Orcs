@@ -9,6 +9,7 @@ import java.util.UUID;
 /** Repositorio en memoria para probar el dominio sin Minecraft. */
 public final class InMemoryRepository implements NemesisRepository {
 	private final Map<UUID, OrcProfile> profiles = new LinkedHashMap<>();
+	private int changes;
 
 	@Override
 	public Optional<OrcProfile> find(UUID orcId) {
@@ -27,5 +28,11 @@ public final class InMemoryRepository implements NemesisRepository {
 
 	@Override
 	public void markChanged() {
+		changes++;
+	}
+
+	/** Cuántas veces se avisó de un cambio (para comprobar que se guardaría). */
+	public int changes() {
+		return changes;
 	}
 }

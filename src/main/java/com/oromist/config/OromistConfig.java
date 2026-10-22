@@ -14,6 +14,8 @@ public final class OromistConfig {
 	public int powerForKillingPlayer = 3;
 	public int powerForSurvivingDeath = 2;
 	public int powerForPlayerFleeing = 1;
+	/** Probabilidad extra de engañar a la muerte si un chamán vivo está cerca del capitán caído. */
+	public float shamanCheatDeathBonus = 0.2f;
 	/** Radio en bloques en el que los jugadores leen lo que dice un orco. */
 	public int dialogueRadius = 32;
 	/** Segundos mínimos entre dos frases del mismo orco al mismo jugador. */
@@ -46,6 +48,6 @@ public final class OromistConfig {
 
 	public NemesisRules toRules() {
 		return new NemesisRules(cheatDeathChanceCaptain, cheatDeathChanceWarchief, powerForKillingPlayer,
-				powerForSurvivingDeath, powerForPlayerFleeing, 0);
+				powerForSurvivingDeath, powerForPlayerFleeing, 0, shamanCheatDeathBonus);
 	}
 }

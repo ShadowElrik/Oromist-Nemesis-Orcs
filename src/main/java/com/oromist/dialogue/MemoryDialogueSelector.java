@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.random.RandomGenerator;
 
@@ -26,6 +28,7 @@ import java.util.random.RandomGenerator;
 public final class MemoryDialogueSelector implements DialogueSelector {
 	private static final String PREFIX = "dialogue.oromist-npc.";
 	private static final long TICKS_PER_DAY = 24000L;
+	private static final String FIRST_MEETING = "first_meeting";
 
 	private final DialogueCatalog catalog;
 
@@ -42,8 +45,16 @@ public final class MemoryDialogueSelector implements DialogueSelector {
 	public Optional<DialogueLine> select(OrcProfile speaker, UUID playerId, String playerName, DialogueTrigger trigger,
 			long gameTime, RandomGenerator random) {
 		Optional<Memory> memory = speaker.mostSignificantMemory(playerId);
-		String category = switch (trigger) {
-			case SIGHTED -> memory.map(m -> categoryFor(speaker, playerId, m)).orElse("first_meeting");
+		String category = trigger == DialogueTrigger.SIGHTED
+				? memory.map(m -> categoryFor(speaker, playerId, m)).orElse(FIRST_MEETING)
+				: eventCategory(trigger);
+		return Optional.of(buildLine(category, speaker, playerId, playerName, memory, gameTime, random));
+	}
+
+	/** Categoría de los disparadores que no dependen de recuerdos. */
+	private static String eventCategory(DialogueTrigger trigger) {
+		return switch (trigger) {
+			case SIGHTED -> FIRST_MEETING;
 			case KILLED_PLAYER -> "taunt_kill";
 			case FLEEING -> "fleeing";
 			case PROMOTED -> "promoted";
@@ -51,15 +62,46 @@ public final class MemoryDialogueSelector implements DialogueSelector {
 			case AMBUSH_MINING -> "ambush_mining";
 			case AMBUSH_TRAVEL -> "ambush_travel";
 			case DYING -> "dying";
+			case MOUNT_LOST -> "mount_lost";
+			case INTERROGATION_TALK -> "interrogation_talk";
+			case INTERROGATION_REFUSE -> "interrogation_refuse";
 		};
-		return Optional.of(buildLine(category, speaker, playerId, playerName, memory, gameTime, random));
+	}
+
+	/** Recuerdos que tienen frases distintas la primera vez y las siguientes ("_again"). */
+	private static boolean hasRepeatVariant(MemoryType type) {
+		return type == MemoryType.KILLED_PLAYER || type == MemoryType.SURVIVED_DEATH;
 	}
 
 	private static String categoryFor(OrcProfile speaker, UUID playerId, Memory memory) {
 		long times = speaker.countMemories(playerId, memory.type());
-		String base = memory.type().name().toLowerCase(Locale.ROOT);
-		boolean repeatable = memory.type() == MemoryType.KILLED_PLAYER || memory.type() == MemoryType.SURVIVED_DEATH;
-		return repeatable && times > 1 ? base + "_again" : base;
+		String base = memoryCategory(memory.type());
+		return hasRepeatVariant(memory.type()) && times > 1 ? base + "_again" : base;
+	}
+
+	private static String memoryCategory(MemoryType type) {
+		return type.name().toLowerCase(Locale.ROOT);
+	}
+
+	/**
+	 * Todas las categorías que este selector puede pedir. Las pruebas comprueban que cada una
+	 * tenga frases en todos los idiomas, así que añadir un recuerdo o disparador sin frases falla pronto.
+	 */
+	public static Set<String> allCategories() {
+		Set<String> categories = new TreeSet<>();
+		for (DialogueTrigger trigger : DialogueTrigger.values()) {
+			categories.add(eventCategory(trigger));
+		}
+		for (MemoryType type : MemoryType.values()) {
+			if (type == MemoryType.FIRST_ENCOUNTER) {
+				continue; // Nunca se usa para hablar: se saluda con "first_meeting".
+			}
+			categories.add(memoryCategory(type));
+			if (hasRepeatVariant(type)) {
+				categories.add(memoryCategory(type) + "_again");
+			}
+		}
+		return categories;
 	}
 
 	private DialogueLine buildLine(String category, OrcProfile speaker, UUID playerId, String playerName,

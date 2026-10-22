@@ -99,7 +99,15 @@ public final class NemesisService {
 	 * El jugador "mata" al orco. Según su rango puede engañar a la muerte y volver más tarde.
 	 */
 	public DeathOutcome onOrcSlainByPlayer(OrcProfile profile, EncounterContext context) {
-		if (random.nextFloat() < rules.cheatDeathChance(profile.rank())) {
+		return onOrcSlainByPlayer(profile, context, false);
+	}
+
+	/**
+	 * Igual que {@link #onOrcSlainByPlayer(OrcProfile, EncounterContext)}, pero indicando si un
+	 * chamán presenció la muerte: sus rituales hacen más probable que el orco vuelva.
+	 */
+	public DeathOutcome onOrcSlainByPlayer(OrcProfile profile, EncounterContext context, boolean shamanNearby) {
+		if (random.nextFloat() < rules.cheatDeathChance(profile.rank(), shamanNearby)) {
 			profile.registerCheatedDeath();
 			if (profile.timesCheatedDeath() == 1) {
 				profile.retitle(UNDYING_EPITHET);
@@ -130,6 +138,15 @@ public final class NemesisService {
 
 	public void onAllyKilledByPlayer(OrcProfile profile, EncounterContext context) {
 		remember(profile, context, MemoryType.PLAYER_KILLED_ALLY);
+	}
+
+	public void onMountKilled(OrcProfile profile, EncounterContext context) {
+		remember(profile, context, MemoryType.MOUNT_KILLED);
+	}
+
+	/** El jugador lo hizo hablar. Delatar a los suyos no da poder, solo rencor. */
+	public void onInterrogated(OrcProfile profile, EncounterContext context) {
+		remember(profile, context, MemoryType.INTERROGATED);
 	}
 
 	public void onAmbush(OrcProfile profile, EncounterContext context) {

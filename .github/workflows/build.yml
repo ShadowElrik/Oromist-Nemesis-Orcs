@@ -23,6 +23,13 @@ jobs:
         run: chmod +x ./gradlew
       - name: build
         run: ./gradlew build
+      - name: game test summary
+        if: always()
+        run: |
+          # Muestra como anotaciones del workflow el resultado de las pruebas dentro del juego.
+          LOG=$(find build -path "*gameTest*" -name "latest.log" | head -1)
+          if [ -z "$LOG" ]; then echo "::warning::No se encontró el registro de las pruebas en el juego"; exit 0; fi
+          grep -iE "tests? (passed|failed)|required tests|optional tests|failed|GameTest" "$LOG" | tail -20 | sed 's/^/::notice::/' || true
       - name: capture build artifacts
         uses: actions/upload-artifact@v7
         with:

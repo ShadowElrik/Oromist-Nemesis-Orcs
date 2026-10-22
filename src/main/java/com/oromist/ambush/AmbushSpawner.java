@@ -3,6 +3,7 @@ package com.oromist.ambush;
 import com.oromist.dialogue.game.DialogueSpeaker;
 import com.oromist.entity.OrcEntity;
 import com.oromist.nemesis.domain.NemesisService;
+import com.oromist.nemesis.domain.OrcArchetype;
 import com.oromist.nemesis.domain.OrcProfile;
 import com.oromist.nemesis.domain.OrcRank;
 import com.oromist.nemesis.game.Encounters;
@@ -23,8 +24,14 @@ import net.minecraft.world.entity.EntitySpawnReason;
 /**
  * Materializa una emboscada: hace aparecer al líder (el némesis del jugador o un
  * capitán nuevo) y a sus soldados, los pone a cazar al jugador y anuncia el ataque.
+ *
+ * <p>En los caminos la escolta va a caballo (jinetes con lanza) y a veces la acompaña un chamán.</p>
  */
 public final class AmbushSpawner {
+	/** Jinetes que acompañan a una emboscada de viaje. */
+	private static final int TRAVEL_RIDERS = 2;
+	private static final float SHAMAN_ESCORT_CHANCE = 0.3f;
+
 	private final DialogueSpeaker speaker;
 
 	public AmbushSpawner(DialogueSpeaker speaker) {
@@ -63,6 +70,7 @@ public final class AmbushSpawner {
 			BlockPos near = locator.find(level, player, random).orElse(anchor.get());
 			OrcEntity grunt = createOrc(level, player, near);
 			if (grunt != null) {
+				escortRole(activity, i, random).ifPresent(role -> grunt.prepareAs(role, random));
 				party.add(grunt);
 			}
 		}
@@ -73,6 +81,17 @@ public final class AmbushSpawner {
 			speaker.speak(leader, player, activity.dialogueTrigger());
 		}
 		return party;
+	}
+
+	/** Papel especial de un miembro de la escolta, o vacío para dejar su arquetipo al azar. */
+	private static Optional<OrcArchetype> escortRole(PlayerActivity activity, int index, RandomSource random) {
+		if (activity == PlayerActivity.TRAVELING && index < TRAVEL_RIDERS) {
+			return Optional.of(OrcArchetype.LANCER);
+		}
+		if (index == TRAVEL_RIDERS && random.nextFloat() < SHAMAN_ESCORT_CHANCE) {
+			return Optional.of(OrcArchetype.SHAMAN);
+		}
+		return Optional.empty();
 	}
 
 	private static OrcEntity createOrc(ServerLevel level, ServerPlayer target, BlockPos pos) {

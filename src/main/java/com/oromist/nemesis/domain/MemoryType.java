@@ -19,6 +19,10 @@ public enum MemoryType {
 	PLAYER_KILLED_ALLY(2, 5),
 	/** El orco emboscó al jugador. */
 	AMBUSHED_PLAYER(1, 1),
+	/** El jugador mató la montura (caballo zombi) del orco. */
+	MOUNT_KILLED(2, 6),
+	/** El jugador lo obligó a delatar a los suyos: una humillación que no olvida. */
+	INTERROGATED(3, 7),
 	/** El orco mató al jugador. */
 	KILLED_PLAYER(5, 8),
 	/** El jugador "mató" al orco, pero este sobrevivió y volvió. */

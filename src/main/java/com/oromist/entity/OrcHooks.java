@@ -1,5 +1,6 @@
 package com.oromist.entity;
 
+import com.oromist.nemesis.domain.OrcTrait;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -25,6 +26,10 @@ public interface OrcHooks {
 
 	/** El jugador al que perseguía el orco se alejó demasiado (huyó). */
 	default void onTargetFled(OrcEntity orc, ServerPlayer player) {
+	}
+
+	/** El jugador acaba de ver en acción uno de los rasgos del orco (p. ej. sus flechas no le hacen nada). */
+	default void onTraitShown(OrcEntity orc, ServerPlayer player, OrcTrait trait) {
 	}
 
 	OrcHooks NONE = new OrcHooks() {

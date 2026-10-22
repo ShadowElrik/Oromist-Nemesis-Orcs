@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -34,9 +36,17 @@ public final class OrcProfile {
 	private int timesCheatedDeath;
 	private int incarnation;
 	private boolean alive;
+	/** Rasgos que cada jugador ya descubrió de este orco (el resto se muestran como "???"). */
+	private final Map<UUID, Set<OrcTrait>> revealedTraits = new HashMap<>();
 
 	public OrcProfile(UUID id, OrcName name, OrcArchetype archetype, float scale, int appearance, Set<OrcTrait> traits,
 			List<Memory> memories, int power, int timesCheatedDeath, int incarnation, boolean alive) {
+		this(id, name, archetype, scale, appearance, traits, memories, power, timesCheatedDeath, incarnation, alive, Map.of());
+	}
+
+	public OrcProfile(UUID id, OrcName name, OrcArchetype archetype, float scale, int appearance, Set<OrcTrait> traits,
+			List<Memory> memories, int power, int timesCheatedDeath, int incarnation, boolean alive,
+			Map<UUID, ? extends Set<OrcTrait>> knownByPlayer) {
 		this.id = Objects.requireNonNull(id, "id");
 		this.name = Objects.requireNonNull(name, "name");
 		this.archetype = Objects.requireNonNull(archetype, "archetype");
@@ -48,6 +58,7 @@ public final class OrcProfile {
 		this.timesCheatedDeath = timesCheatedDeath;
 		this.incarnation = incarnation;
 		this.alive = alive;
+		knownByPlayer.forEach((player, known) -> known.forEach(trait -> revealTraitTo(player, trait)));
 	}
 
 	// --- Identidad -------------------------------------------------------------
@@ -94,6 +105,42 @@ public final class OrcProfile {
 	/** @return {@code true} si el rasgo es nuevo */
 	public boolean gainTrait(OrcTrait trait) {
 		return traits.add(trait);
+	}
+
+	// --- Información descubierta por los jugadores ----------------------------------
+
+	/**
+	 * El jugador descubre uno de los rasgos de este orco.
+	 *
+	 * @return {@code true} si es un descubrimiento nuevo (el orco tiene el rasgo y el jugador no lo sabía)
+	 */
+	public boolean revealTraitTo(UUID playerId, OrcTrait trait) {
+		if (!traits.contains(trait)) {
+			return false;
+		}
+		return revealedTraits.computeIfAbsent(playerId, id -> EnumSet.noneOf(OrcTrait.class)).add(trait);
+	}
+
+	/** Rasgos de este orco que el jugador conoce. */
+	public Set<OrcTrait> knownTraits(UUID playerId) {
+		Set<OrcTrait> known = EnumSet.noneOf(OrcTrait.class);
+		known.addAll(traits);
+		known.retainAll(revealedTraits.getOrDefault(playerId, Set.of()));
+		return Collections.unmodifiableSet(known);
+	}
+
+	/** Rasgos de este orco que el jugador todavía no conoce. */
+	public Set<OrcTrait> hiddenTraits(UUID playerId) {
+		Set<OrcTrait> hidden = traits.isEmpty() ? EnumSet.noneOf(OrcTrait.class) : EnumSet.copyOf(traits);
+		hidden.removeAll(revealedTraits.getOrDefault(playerId, Set.of()));
+		return Collections.unmodifiableSet(hidden);
+	}
+
+	/** Todo lo descubierto, por jugador (para guardarlo). */
+	public Map<UUID, Set<OrcTrait>> revealedTraits() {
+		Map<UUID, Set<OrcTrait>> copy = new HashMap<>();
+		revealedTraits.forEach((player, known) -> copy.put(player, Collections.unmodifiableSet(EnumSet.copyOf(known))));
+		return Collections.unmodifiableMap(copy);
 	}
 
 	// --- Progresión --------------------------------------------------------------

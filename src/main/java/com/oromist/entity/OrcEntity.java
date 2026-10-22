@@ -2,7 +2,9 @@ package com.oromist.entity;
 
 import com.oromist.OromistNPC;
 import com.oromist.entity.ai.OrcCombatController;
+import com.oromist.entity.ai.OrcFlankGoal;
 import com.oromist.entity.ai.OrcRetreatGoal;
+import com.oromist.entity.ai.ShamanWarBloodGoal;
 import com.oromist.entity.ai.WeaponCombatStrategy;
 import com.oromist.nemesis.domain.OrcArchetype;
 import com.oromist.nemesis.domain.OrcProfile;
@@ -29,6 +31,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -65,8 +68,9 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 /**
- * El orco. Combate con espada, hacha, arco o ballesta según su arquetipo, tiene una
- * altura variable y puede estar vinculado a un {@link OrcProfile} del sistema Némesis.
+ * El orco. Combate con espada, hacha, arco, ballesta, lanza (montado en un caballo zombi)
+ * o magia de chamán según su arquetipo, tiene una altura variable y puede estar vinculado a
+ * un {@link OrcProfile} del sistema Némesis.
  *
  * <p>La entidad se limita a comportamiento y presentación; las decisiones de memoria,
  * ascensos y diálogos viven en la capa Némesis y se conectan mediante {@link OrcHooks}.</p>
@@ -90,6 +94,10 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 	private static final int MIN_FIGHT_TICKS = 100;
 	/** Por debajo de este porcentaje de vida un orco puede decidir huir. */
 	private static final float RETREAT_HEALTH_RATIO = 0.25f;
+	/** Por debajo de este porcentaje de vida un soldado raso se deja interrogar. */
+	private static final float INTERROGATION_HEALTH_RATIO = 0.3f;
+	/** Tiempo mínimo entre dos gritos de guerra del mismo orco (ticks). */
+	private static final int WAR_CRY_COOLDOWN = 30 * 20;
 
 	private static OrcHooks hooks = OrcHooks.NONE;
 
@@ -105,6 +113,13 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 	private boolean retreating;
 	private @Nullable UUID engagedPlayer;
 	private int engagedTicks;
+	/** Un capitán o caudillo cerca le da valor: golpea más fuerte y no huye. */
+	private boolean inspired;
+	private long lastWarCry = Long.MIN_VALUE;
+	/** El jinete ya recibió su montura (aunque haya muerto, no se repone). */
+	private boolean mountSummoned;
+	/** Ya fue interrogado: no se puede volver a sacar información del mismo orco. */
+	private boolean interrogated;
 
 	public OrcEntity(EntityType<? extends OrcEntity> type, Level level) {
 		super(type, level);
@@ -134,6 +149,8 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 	protected void registerGoals() {
 		goalSelector.addGoal(0, new FloatGoal(this));
 		goalSelector.addGoal(1, new OrcRetreatGoal(this, 1.3));
+		goalSelector.addGoal(2, new ShamanWarBloodGoal(this));
+		goalSelector.addGoal(3, new OrcFlankGoal(this));
 		// Prioridad 4: objetivo de combate según arma (OrcCombatController).
 		goalSelector.addGoal(5, new OpenDoorGoal(this, true));
 		goalSelector.addGoal(6, new WaterAvoidingRandomStrollGoal(this, 0.9));
@@ -164,11 +181,29 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 	@Override
 	protected void customServerAiStep(ServerLevel level) {
 		super.customServerAiStep(level);
+		if (archetype.isMounted() && !mountSummoned) {
+			mountSummoned = true;
+			OrcMounts.summonFor(this, level);
+		}
 		trackEngagedPlayer();
 		if (tickCount % 20 == 0) {
 			TraitEffects.tickAll(this);
+			updateInspiration();
+			if (TraitEffects.isEnraged(this) && getTarget() instanceof ServerPlayer player) {
+				hooks.onTraitShown(this, player, OrcTrait.BERSERKER);
+			}
 			hooks.onServerSecond(this);
 		}
+	}
+
+	/** Solo los soldados rasos se inspiran; los líderes son la inspiración. */
+	private void updateInspiration() {
+		inspired = !currentRank().isNamed() && OrcSquad.hasLeaderNearby(this);
+		OrcSquad.updateInspiration(this, inspired);
+	}
+
+	public boolean isInspired() {
+		return inspired;
 	}
 
 	/**
@@ -180,6 +215,7 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 			if (!player.getUUID().equals(engagedPlayer)) {
 				engagedPlayer = player.getUUID();
 				engagedTicks = 0;
+				onNewPrey(player);
 			}
 			engagedTicks++;
 			return;
@@ -192,6 +228,27 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 		}
 		engagedPlayer = null;
 		engagedTicks = 0;
+	}
+
+	/** Empieza a cazar a un jugador: avisa a los suyos y deja ver su velocidad. */
+	private void onNewPrey(ServerPlayer player) {
+		long now = level().getGameTime();
+		if (now - lastWarCry >= WAR_CRY_COOLDOWN) {
+			lastWarCry = now;
+			OrcSquad.warCry(this, player);
+		}
+		if (traits.contains(OrcTrait.SWIFT)) {
+			hooks.onTraitShown(this, player, OrcTrait.SWIFT);
+		}
+	}
+
+	/**
+	 * Responde al grito de guerra de otro orco: se une a la caza, pero no grita a su vez
+	 * (si no, una aldea entera rugiría en cadena).
+	 */
+	public void answerWarCry(LivingEntity prey) {
+		lastWarCry = level().getGameTime();
+		setTarget(prey);
 	}
 
 	// --- Huida ----------------------------------------------------------------------
@@ -208,6 +265,9 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 			return false;
 		}
 		if (!retreatDecided) {
+			if (inspired) {
+				return false; // Con su capitán mirando no se atreve; lo decidirá si el capitán cae.
+			}
 			retreatDecided = true;
 			boolean named = currentRank().isNamed();
 			retreating = traits.contains(OrcTrait.COWARD) || (named && getRandom().nextFloat() < 0.35f);
@@ -217,6 +277,30 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 
 	public void onStartRetreat(LivingEntity threat) {
 		hooks.onRetreatStarted(this, threat);
+		if (traits.contains(OrcTrait.COWARD) && threat instanceof ServerPlayer player) {
+			hooks.onTraitShown(this, player, OrcTrait.COWARD);
+		}
+	}
+
+	/** Huye ya, sin tirar dados (por ejemplo, tras ser interrogado). */
+	public void forceRetreat() {
+		retreatDecided = true;
+		retreating = true;
+	}
+
+	// --- Interrogatorio ----------------------------------------------------------------
+
+	/** ¿Está lo bastante malherido para que lo intenten interrogar? */
+	public boolean isBroken() {
+		return isAlive() && getHealth() <= getMaxHealth() * INTERROGATION_HEALTH_RATIO;
+	}
+
+	public boolean wasInterrogated() {
+		return interrogated;
+	}
+
+	public void markInterrogated() {
+		interrogated = true;
 	}
 
 	public void escapeFrom(LivingEntity threat) {
@@ -228,7 +312,40 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 
 	@Override
 	public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
-		return super.hurtServer(level, source, TraitEffects.modifyIncomingDamage(this, source, damage));
+		ServerPlayer witness = playerResponsibleFor(source);
+		float modified = TraitEffects.modifyIncomingDamage(this, source, damage, trait -> {
+			if (witness != null) {
+				hooks.onTraitShown(this, witness, trait);
+			}
+		});
+		// La piel gruesa se nota al primer golpe directo.
+		if (witness != null && source.getEntity() == witness && traits.contains(OrcTrait.THICK_HIDE)) {
+			hooks.onTraitShown(this, witness, OrcTrait.THICK_HIDE);
+		}
+		return super.hurtServer(level, source, modified);
+	}
+
+	/** El jugador que causa el daño o, si es fuego u otra causa sin autor, el jugador con quien pelea. */
+	private @Nullable ServerPlayer playerResponsibleFor(DamageSource source) {
+		if (source.getEntity() instanceof ServerPlayer player) {
+			return player;
+		}
+		return source.getEntity() == null && getTarget() instanceof ServerPlayer target ? target : null;
+	}
+
+	@Override
+	public boolean doHurtTarget(ServerLevel level, Entity target) {
+		boolean hit = super.doHurtTarget(level, target);
+		if (hit && target instanceof ServerPlayer player && traits.contains(OrcTrait.BRUTE)) {
+			hooks.onTraitShown(this, player, OrcTrait.BRUTE);
+		}
+		return hit;
+	}
+
+	/** Los orcos (y sus monturas) son aliados: sus hechizos y garras no se dañan entre sí. */
+	@Override
+	protected boolean considersEntityAsAlly(Entity other) {
+		return other instanceof OrcEntity || OrcMounts.isOrcMount(other) || super.considersEntityAsAlly(other);
 	}
 
 	public Set<OrcTrait> traits() {
@@ -428,6 +545,8 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 		output.storeNullable("ProfileId", UUIDUtil.CODEC, profileId);
 		output.putInt("Incarnation", incarnation);
 		output.storeNullable("PendingRank", NemesisCodecs.enumCodec(OrcRank.class), pendingRank);
+		output.putBoolean("MountSummoned", mountSummoned);
+		output.putBoolean("Interrogated", interrogated);
 	}
 
 	@Override
@@ -438,6 +557,9 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 		profileId = input.read("ProfileId", UUIDUtil.CODEC).orElse(null);
 		incarnation = input.getIntOr("Incarnation", 0);
 		pendingRank = input.read("PendingRank", NemesisCodecs.enumCodec(OrcRank.class)).orElse(null);
+		// Por defecto "ya invocada": un jinete guardado antes de la 0.4.0 no recibe una montura de golpe.
+		mountSummoned = input.getBooleanOr("MountSummoned", true);
+		interrogated = input.getBooleanOr("Interrogated", false);
 		profileApplied = false;
 		combat.reassess();
 	}
@@ -478,5 +600,25 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 	@Override
 	public boolean removeWhenFarAway(double distanceSquared) {
 		return !currentRank().isNamed() && pendingRank == null && super.removeWhenFarAway(distanceSquared);
+	}
+
+	/**
+	 * Vanilla nunca hace desaparecer a un mob que va montado. Los jinetes orcos rasos sí deben
+	 * desaparecer como el resto (junto con su montura, ver {@link #remove}).
+	 */
+	@Override
+	public boolean requiresCustomPersistence() {
+		boolean ridingOwnMount = getVehicle() != null && OrcMounts.isOrcMount(getVehicle());
+		return ridingOwnMount ? isLeashed() : super.requiresCustomPersistence();
+	}
+
+	/** Si el jinete desaparece (por distancia, por huir o por ser un "eco"), su montura se va con él. */
+	@Override
+	public void remove(RemovalReason reason) {
+		Entity vehicle = getVehicle();
+		if (reason == RemovalReason.DISCARDED && vehicle != null && OrcMounts.isOrcMount(vehicle)) {
+			vehicle.discard();
+		}
+		super.remove(reason);
 	}
 }

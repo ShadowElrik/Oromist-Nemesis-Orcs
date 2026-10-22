@@ -13,10 +13,13 @@ import com.oromist.nemesis.domain.OrcName;
 import com.oromist.nemesis.domain.OrcProfile;
 import com.oromist.nemesis.domain.OrcTrait;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.core.UUIDUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +87,21 @@ public final class NemesisCodecs {
 			Codec.STRING.optionalFieldOf("epithet", "").forGetter(OrcName::epithetKey)
 	).apply(i, OrcName::new));
 
+	/** Lo que un jugador sabe de un orco: {@code {player: ..., traits: [...]}}. */
+	private record PlayerIntel(UUID player, List<OrcTrait> traits) {
+	}
+
+	private static final Codec<PlayerIntel> PLAYER_INTEL = RecordCodecBuilder.create(i -> i.group(
+			UUIDUtil.CODEC.fieldOf("player").forGetter(PlayerIntel::player),
+			lenientList(TRAIT).fieldOf("traits").forGetter(PlayerIntel::traits)
+	).apply(i, PlayerIntel::new));
+
+	private static List<PlayerIntel> intelOf(OrcProfile profile) {
+		return profile.revealedTraits().entrySet().stream()
+				.map(entry -> new PlayerIntel(entry.getKey(), List.copyOf(entry.getValue())))
+				.toList();
+	}
+
 	public static final Codec<OrcProfile> PROFILE = RecordCodecBuilder.create(i -> i.group(
 			UUIDUtil.CODEC.fieldOf("id").forGetter(OrcProfile::id),
 			NAME.fieldOf("name").forGetter(OrcProfile::name),
@@ -96,12 +114,18 @@ public final class NemesisCodecs {
 			Codec.INT.optionalFieldOf("power", 0).forGetter(OrcProfile::power),
 			Codec.INT.optionalFieldOf("cheated_death", 0).forGetter(OrcProfile::timesCheatedDeath),
 			Codec.INT.optionalFieldOf("incarnation", 0).forGetter(OrcProfile::incarnation),
-			Codec.BOOL.optionalFieldOf("alive", true).forGetter(OrcProfile::isAlive)
+			Codec.BOOL.optionalFieldOf("alive", true).forGetter(OrcProfile::isAlive),
+			// Añadido en la 0.4.0: los perfiles anteriores empiezan sin nada descubierto.
+			lenientList(PLAYER_INTEL).optionalFieldOf("revealed", List.of()).forGetter(NemesisCodecs::intelOf)
 	).apply(i, NemesisCodecs::profile));
 
-	private static OrcProfile profile(java.util.UUID id, OrcName name, OrcArchetype archetype, float scale, int appearance,
-			List<OrcTrait> traits, List<Memory> memories, int power, int cheatedDeath, int incarnation, boolean alive) {
+	private static OrcProfile profile(UUID id, OrcName name, OrcArchetype archetype, float scale, int appearance,
+			List<OrcTrait> traits, List<Memory> memories, int power, int cheatedDeath, int incarnation, boolean alive,
+			List<PlayerIntel> revealed) {
 		Set<OrcTrait> traitSet = new HashSet<>(traits);
-		return new OrcProfile(id, name, archetype, scale, appearance, traitSet, memories, power, cheatedDeath, incarnation, alive);
+		Map<UUID, Set<OrcTrait>> known = new HashMap<>();
+		revealed.forEach(intel -> known.computeIfAbsent(intel.player(), p -> new HashSet<>()).addAll(intel.traits()));
+		return new OrcProfile(id, name, archetype, scale, appearance, traitSet, memories, power, cheatedDeath, incarnation,
+				alive, known);
 	}
 }

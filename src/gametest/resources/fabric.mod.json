@@ -1,0 +1,20 @@
+{
+	"schemaVersion": 1,
+	"id": "oromist-npc-gametest",
+	"version": "1.0.0",
+	"name": "Oromist: Nemesis Orcs (pruebas en el juego)",
+	"description": "Pruebas automáticas que se ejecutan dentro de un servidor de Minecraft real.",
+	"license": "CC0-1.0",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-gametest": [
+			"com.oromist.gametest.OrcCombatGameTests",
+			"com.oromist.gametest.ShamanGameTests",
+			"com.oromist.gametest.RiderGameTests"
+		]
+	},
+	"depends": {
+		"oromist-npc": "*",
+		"fabric-api": "*"
+	}
+}
