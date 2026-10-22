@@ -6,6 +6,7 @@ import com.oromist.entity.OrcEntity;
 import com.oromist.entity.OrcHooks;
 import com.oromist.nemesis.domain.NemesisService;
 import com.oromist.nemesis.domain.OrcProfile;
+import com.oromist.nemesis.domain.OrcTrait;
 import java.util.Optional;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -89,6 +90,17 @@ public final class OrcNemesisHooks implements OrcHooks {
 			runtime.service().ifPresent(service ->
 					service.onOrcFled(OrcProfiles.ensure(orc, service), Encounters.of(player)));
 		}
+	}
+
+	/** El jugador ve un rasgo en acción: si no lo conocía, queda anotado y se le avisa. */
+	@Override
+	public void onTraitShown(OrcEntity orc, ServerPlayer player, OrcTrait trait) {
+		runtime.service().flatMap(service -> OrcProfiles.of(orc, service)).ifPresent(profile ->
+				runtime.intel().ifPresent(intel -> {
+					if (intel.reveal(profile, player.getUUID(), trait)) {
+						player.sendSystemMessage(IntelMessages.discovered(profile, trait));
+					}
+				}));
 	}
 
 	@Override

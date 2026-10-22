@@ -126,4 +126,41 @@ class NemesisServiceTest {
 
 		assertEquals(2, orc.appearance());
 	}
+
+	@Test
+	void losingAMountOrBeingInterrogatedIsRememberedWithAGrudge() {
+		NemesisService service = service(1.0f);
+		OrcProfile rider = service.createProfile(OrcArchetype.LANCER, 1.0f, 0, OrcRank.GRUNT);
+
+		service.onMountKilled(rider, steveInPlains);
+		service.onInterrogated(rider, steveInPlains);
+
+		assertEquals(1L, rider.countMemories(steve, MemoryType.MOUNT_KILLED));
+		assertEquals(1L, rider.countMemories(steve, MemoryType.INTERROGATED));
+		assertEquals(MemoryType.INTERROGATED, rider.mostSignificantMemory(steve).orElseThrow().type(),
+				"la humillación pesa más que perder la montura");
+		assertTrue(service.nemesisOf(steve, p -> true).isPresent());
+	}
+
+	@Test
+	void aShamanNearbyBringsCaptainsBackMoreOften() {
+		int withoutShaman = survivors(false);
+		int withShaman = survivors(true);
+
+		assertTrue(withShaman > withoutShaman + 20, "con chamán: " + withShaman + ", sin chamán: " + withoutShaman);
+	}
+
+	/** De 100 capitanes "muertos", cuántos vuelven (10 % base, +50 % con chamán). */
+	private int survivors(boolean shamanNearby) {
+		NemesisService service = new NemesisService(new InMemoryRepository(), new NemesisRules(0.1f, 0.1f, 3, 2, 1, 0, 0.5f),
+				new OrcNameGenerator.Syllabic(), new TraitRoller.Default(), new SplittableRandom(1));
+		int survived = 0;
+		for (int i = 0; i < 100; i++) {
+			OrcProfile captain = service.createProfile(OrcArchetype.SHAMAN, 1.0f, 0, OrcRank.CAPTAIN);
+			if (service.onOrcSlainByPlayer(captain, steveInPlains, shamanNearby) == NemesisService.DeathOutcome.CHEATED_DEATH) {
+				survived++;
+			}
+		}
+		return survived;
+	}
 }

@@ -2,6 +2,7 @@ package com.oromist.registry;
 
 import com.oromist.OromistNPC;
 import com.oromist.entity.OrcEntity;
+import com.oromist.entity.magic.GreenFireball;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -26,10 +27,23 @@ public final class ModEntities {
 			.clientTrackingRange(10)
 			.build(ORC_KEY);
 
+	public static final ResourceKey<EntityType<?>> GREEN_FIREBALL_KEY =
+			ResourceKey.create(Registries.ENTITY_TYPE, OromistNPC.id("green_fireball"));
+
+	/** Proyectil de los chamanes (mismo tamaño y alcance que la bola de fuego pequeña vanilla). */
+	public static final EntityType<GreenFireball> GREEN_FIREBALL = EntityType.Builder
+			.<GreenFireball>of(GreenFireball::new, MobCategory.MISC)
+			.noLootTable()
+			.sized(0.3125F, 0.3125F)
+			.clientTrackingRange(4)
+			.updateInterval(10)
+			.build(GREEN_FIREBALL_KEY);
+
 	private ModEntities() {
 	}
 
 	public static void register() {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, ORC_KEY, ORC);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, GREEN_FIREBALL_KEY, GREEN_FIREBALL);
 	}
 }

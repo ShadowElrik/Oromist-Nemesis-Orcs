@@ -1,27 +1,59 @@
 package com.oromist.nemesis.domain;
 
+import java.util.Locale;
+
 /**
- * Estilo de combate de un orco, determinado por su arma principal.
- * La capa de entidades traduce cada arquetipo a un objeto concreto de Minecraft
- * (ver {@code OrcLoadouts}).
+ * Papel de un orco en la Horda. Determina su forma de luchar; la capa de entidades
+ * traduce cada arquetipo a armas e IA concretas (ver {@code OrcLoadouts} y
+ * {@code WeaponCombatStrategy}).
  */
 public enum OrcArchetype {
-	SWORDSMAN(false),
-	AXEMAN(false),
-	ARCHER(true),
-	CROSSBOWMAN(true);
+	SWORDSMAN(CombatStyle.MELEE),
+	AXEMAN(CombatStyle.MELEE),
+	ARCHER(CombatStyle.RANGED),
+	CROSSBOWMAN(CombatStyle.RANGED),
+	/** Guardián de los huesos y la sangre: lanza fuego verde y fortalece a los suyos. */
+	SHAMAN(CombatStyle.SPELLCASTER),
+	/** Jinete de caballo zombi armado con lanza. */
+	LANCER(CombatStyle.MOUNTED);
 
-	private final boolean ranged;
+	private final CombatStyle style;
 
-	OrcArchetype(boolean ranged) {
-		this.ranged = ranged;
+	OrcArchetype(CombatStyle style) {
+		this.style = style;
 	}
 
+	public CombatStyle style() {
+		return style;
+	}
+
+	/** ¿Prefiere luchar a distancia (arqueros, ballesteros y chamanes)? */
 	public boolean isRanged() {
-		return ranged;
+		return style == CombatStyle.RANGED || style == CombatStyle.SPELLCASTER;
+	}
+
+	/** ¿Combate cuerpo a cuerpo a pie? Solo estos orcos intentan flanquear. */
+	public boolean isMelee() {
+		return style == CombatStyle.MELEE;
+	}
+
+	public boolean isMounted() {
+		return style == CombatStyle.MOUNTED;
+	}
+
+	public boolean isSpellcaster() {
+		return style == CombatStyle.SPELLCASTER;
 	}
 
 	public String translationKey() {
-		return "archetype.oromist-npc." + name().toLowerCase(java.util.Locale.ROOT);
+		return "archetype.oromist-npc." + name().toLowerCase(Locale.ROOT);
+	}
+
+	/** Forma general de combatir, compartida por varios arquetipos. */
+	public enum CombatStyle {
+		MELEE,
+		RANGED,
+		SPELLCASTER,
+		MOUNTED
 	}
 }

@@ -1,6 +1,7 @@
 package com.oromist.nemesis.game;
 
 import com.oromist.config.OromistConfig;
+import com.oromist.nemesis.domain.IntelService;
 import com.oromist.nemesis.domain.NemesisListener;
 import com.oromist.nemesis.domain.NemesisService;
 import com.oromist.nemesis.domain.OrcNameGenerator;
@@ -22,6 +23,7 @@ public final class NemesisRuntime {
 	private final Function<MinecraftServer, NemesisListener> listenerFactory;
 	private final ActiveOrcs activeOrcs = new ActiveOrcs();
 	private @Nullable NemesisService service;
+	private @Nullable IntelService intel;
 	private @Nullable MinecraftServer server;
 
 	public NemesisRuntime(OromistConfig config, Function<MinecraftServer, NemesisListener> listenerFactory) {
@@ -33,26 +35,34 @@ public final class NemesisRuntime {
 		ServerLifecycleEvents.SERVER_STARTED.register(this::start);
 		ServerLifecycleEvents.SERVER_STOPPED.register(stopped -> {
 			service = null;
+			intel = null;
 			server = null;
 			activeOrcs.clear();
 		});
 	}
 
 	private void start(MinecraftServer startedServer) {
+		NemesisSavedData data = NemesisSavedData.get(startedServer);
 		NemesisService created = new NemesisService(
-				NemesisSavedData.get(startedServer),
+				data,
 				config.toRules(),
 				new OrcNameGenerator.Syllabic(),
 				new TraitRoller.Default(),
 				new SplittableRandom());
 		created.addListener(listenerFactory.apply(startedServer));
 		this.service = created;
+		this.intel = new IntelService(data, new SplittableRandom());
 		this.server = startedServer;
 	}
 
 	/** Servicio activo, vacío si no hay un mundo cargado. */
 	public Optional<NemesisService> service() {
 		return Optional.ofNullable(service);
+	}
+
+	/** Lo que los jugadores saben de los rasgos de los orcos; vacío si no hay un mundo cargado. */
+	public Optional<IntelService> intel() {
+		return Optional.ofNullable(intel);
 	}
 
 	public Optional<MinecraftServer> server() {
