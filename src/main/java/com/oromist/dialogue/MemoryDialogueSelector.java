@@ -6,7 +6,6 @@ import com.oromist.nemesis.domain.OrcProfile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.random.RandomGenerator;
@@ -15,8 +14,8 @@ import java.util.random.RandomGenerator;
  * Selector de diálogos basado en recuerdos.
  *
  * <p>Las claves siguen el patrón {@code dialogue.oromist-npc.<categoría>.<n>}; para añadir
- * frases basta con agregarlas a los archivos de idioma y subir el número de variantes
- * en {@link #VARIANTS}. Argumentos disponibles en todas las frases:</p>
+ * frases basta con agregarlas a los archivos de idioma con el siguiente número libre
+ * (ver {@link DialogueCatalog}). Argumentos disponibles en todas las frases:</p>
  * <ol>
  *   <li>{@code %1$s} nombre del jugador</li>
  *   <li>{@code %2$s} días transcurridos desde el recuerdo</li>
@@ -28,25 +27,16 @@ public final class MemoryDialogueSelector implements DialogueSelector {
 	private static final String PREFIX = "dialogue.oromist-npc.";
 	private static final long TICKS_PER_DAY = 24000L;
 
-	/** Cuántas variantes existen por categoría en los archivos de idioma. */
-	private static final Map<String, Integer> VARIANTS = Map.ofEntries(
-			Map.entry("first_meeting", 5),
-			Map.entry("wounded_by_player", 3),
-			Map.entry("fled_from_player", 3),
-			Map.entry("player_fled", 3),
-			Map.entry("player_killed_ally", 3),
-			Map.entry("ambushed_player", 2),
-			Map.entry("killed_player", 4),
-			Map.entry("killed_player_again", 3),
-			Map.entry("survived_death", 4),
-			Map.entry("survived_death_again", 2),
-			Map.entry("taunt_kill", 4),
-			Map.entry("fleeing", 3),
-			Map.entry("promoted", 3),
-			Map.entry("ambush_home", 3),
-			Map.entry("ambush_mining", 3),
-			Map.entry("ambush_travel", 3),
-			Map.entry("dying", 4));
+	private final DialogueCatalog catalog;
+
+	/** Usa las frases incluidas en el mod. */
+	public MemoryDialogueSelector() {
+		this(DialogueCatalog.fromModResources());
+	}
+
+	public MemoryDialogueSelector(DialogueCatalog catalog) {
+		this.catalog = catalog;
+	}
 
 	@Override
 	public Optional<DialogueLine> select(OrcProfile speaker, UUID playerId, String playerName, DialogueTrigger trigger,
@@ -72,9 +62,9 @@ public final class MemoryDialogueSelector implements DialogueSelector {
 		return repeatable && times > 1 ? base + "_again" : base;
 	}
 
-	private static DialogueLine buildLine(String category, OrcProfile speaker, UUID playerId, String playerName,
+	private DialogueLine buildLine(String category, OrcProfile speaker, UUID playerId, String playerName,
 			Optional<Memory> memory, long gameTime, RandomGenerator random) {
-		int variants = VARIANTS.getOrDefault(category, 1);
+		int variants = catalog.variants(category);
 		String key = PREFIX + category + "." + random.nextInt(variants);
 
 		long daysAgo = memory.map(m -> Math.max(0, (gameTime - m.gameTime()) / TICKS_PER_DAY)).orElse(0L);

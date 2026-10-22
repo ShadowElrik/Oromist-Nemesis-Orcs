@@ -1,5 +1,20 @@
 # Registro de cambios
 
+## 0.3.0 — Lore de la Horda de las Farlands
+
+### Añadido
+- **Lore** (`LORE.md`): los orcos vienen de más allá de las Farlands, odian a los humanos,
+  aman la guerra, viven de la carne y tienen chamanes y jinetes de caballos zombi.
+- **42 frases nuevas** en español e inglés con ese trasfondo (132 en total).
+- **8 epítetos nuevos**: *de las Farlands*, *Cruzabordes*, *Jinete Muerto*, *Cazahumanos*,
+  *Tambor de Guerra*, *el Chamán*, *Señor de la Carne*, *el Belicoso*.
+- **Huerto orco** en las aldeas: papas y betarragas regadas por un canal, con ahumador para la carne.
+
+### Cambiado
+- Ya no hay que actualizar números en el código al agregar frases: el mod cuenta las frases
+  de cada categoría leyendo el archivo de idioma. Nuevas pruebas comprueban que los tres
+  idiomas tengan las mismas frases y todos los epítetos.
+
 ## 0.2.0 — Revisión para multijugador
 
 ### Corregido

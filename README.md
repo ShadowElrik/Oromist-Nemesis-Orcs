@@ -4,6 +4,10 @@ Mod de Fabric para **Minecraft 26.3** que añade orcos con un **sistema Némesis
 *Shadow of Mordor*: los orcos te recuerdan, ascienden cuando te vencen, engañan a la muerte,
 te emboscan en tu casa, en la mina o de viaje, y viven en aldeas propias.
 
+> Los orcos llegaron desde más allá de las **Farlands**. Odian a los humanos, aman la guerra
+> y nunca olvidan. El trasfondo completo y lo que está planeado (chamanes con magia, jinetes
+> en caballos zombi) está en [`LORE.md`](LORE.md).
+
 ## Qué incluye
 
 | Característica | Detalle |
@@ -16,7 +20,7 @@ te emboscan en tu casa, en la mina o de viaje, y viven en aldeas propias.
 | **Diálogos** | Al verte, el orco habla según su recuerdo más importante: *«¿Creías que me habías matado en Taiga? ¡Mira esta cicatriz, Steve!»*. En español e inglés. |
 | **Engañar a la muerte** | Un capitán (35 %) o caudillo (50 %) "muerto" puede volver más tarde, con el epíteto *el Inmortal*. |
 | **Emboscadas** | Periódicamente, según lo que hagas: **en casa** (cerca de tu cama), **minando** (bajo tierra) o **viajando**. Suelen estar lideradas por tu némesis. |
-| **Aldeas orcas** | Hoguera central, tienda del jefe (con un capitán con nombre), chozas, barracón, fragua, torres de vigía y tótems. Rareza igual a las aldeas vanilla (spacing 34, separation 8). |
+| **Aldeas orcas** | Hoguera central, tienda del jefe (con un capitán con nombre), chozas, barracón, fragua, huertos, torres de vigía y tótems. Rareza igual a las aldeas vanilla (spacing 34, separation 8). |
 | **Aparición natural** | Pequeñas partidas nocturnas en los biomas orcos. |
 
 ### Comandos
@@ -97,7 +101,7 @@ com.oromist
 |---|---|
 | Un arma nueva (p. ej. lanza) | Nueva `WeaponCombatStrategy` y añadirla a `WeaponCombatStrategy.DEFAULTS`; el arma en `OrcLoadouts`. |
 | Un rasgo | Valor en `OrcTrait` + su efecto en `TraitEffects` + traducción `trait.oromist-npc.*`. |
-| Frases de diálogo | Añadir `dialogue.oromist-npc.<categoría>.<n>` en `lang/*.json` y subir el número en `MemoryDialogueSelector.VARIANTS`. |
+| Frases de diálogo | Añadir `dialogue.oromist-npc.<categoría>.<n>` en los tres `lang/*.json` (ver `LORE.md`); no hace falta tocar código. |
 | Un edificio | Clase que implemente `OrcBuilding`, registrarla en `OrcBuildings` y pedirla en `VillageLayoutPlanner`. |
 | Una situación de emboscada | Valor en `PlayerActivity` + un `ActivityDetector` + un `SpawnLocator`. |
 | Una reacción a ascensos/muertes | Implementar `NemesisListener` y registrarlo en `NemesisRuntime`. |
