@@ -23,7 +23,9 @@ public interface OrcNameGenerator {
 				"bonecrusher", "skull_taker", "the_cruel", "the_butcher", "flesh_eater", "iron_jaw",
 				"the_slow", "black_tongue", "the_proud", "dark_eye", "the_mad", "storm_bringer",
 				"of_the_pits", "the_hunter", "the_rabid", "spine_snapper", "the_coward", "head_hunter",
-				"the_stinker", "blood_drinker", "the_tracker", "of_the_ashes", "the_loud", "the_drunk");
+				"the_stinker", "blood_drinker", "the_tracker", "of_the_ashes", "the_loud", "the_drunk",
+				"of_the_farlands", "edge_crosser", "dead_rider", "man_hunter", "war_drum", "the_shaman",
+				"meat_lord", "warmonger");
 
 		@Override
 		public OrcName generate(RandomGenerator random) {

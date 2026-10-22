@@ -40,6 +40,7 @@ public final class VillageLayoutPlanner {
 		addCopies(others, OrcBuildings.FORGE, 1);
 		addCopies(others, OrcBuildings.LONGHOUSE, random.nextInt(2));
 		addCopies(others, OrcBuildings.TOTEM, 2 + random.nextInt(3));
+		addCopies(others, OrcBuildings.FARM_PLOT, 1 + random.nextInt(2));
 		Collections.shuffle(others, new java.util.Random(random.nextLong()));
 
 		for (OrcBuilding building : others) {

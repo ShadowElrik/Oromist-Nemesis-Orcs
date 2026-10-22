@@ -17,10 +17,13 @@ import java.util.Set;
 import java.util.SplittableRandom;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 class MemoryDialogueSelectorTest {
 	private static final UUID STEVE = UUID.randomUUID();
+	private static final Pattern DIALOGUE_KEY = Pattern.compile("\"(dialogue\\.oromist-npc\\.[a-z_]+\\.\\d+)\"");
 	private static final EncounterContext CONTEXT = new EncounterContext(STEVE, "Steve", 2 * 24000L, "minecraft:taiga");
 
 	private final MemoryDialogueSelector selector = new MemoryDialogueSelector();
@@ -42,7 +45,7 @@ class MemoryDialogueSelectorTest {
 			for (int times = 1; times <= 2; times++) {
 				OrcProfile orc = orcRemembering(type, times);
 				for (DialogueTrigger trigger : DialogueTrigger.values()) {
-					for (int seed = 0; seed < 50; seed++) {
+					for (int seed = 0; seed < 300; seed++) {
 						keys.add(selector.select(orc, STEVE, "Steve", trigger, 10 * 24000L, new SplittableRandom(seed))
 								.orElseThrow().translationKey());
 					}
@@ -54,6 +57,27 @@ class MemoryDialogueSelectorTest {
 			for (String key : keys) {
 				assertTrue(json.contains("\"" + key + "\""), "falta " + key + " en " + language);
 			}
+		}
+	}
+
+	/** Y al revés: toda frase escrita en los idiomas debe poder salir en el juego (nada queda olvidado). */
+	@Test
+	void everyTranslatedDialogueLineIsReachable() throws IOException {
+		Set<String> reachable = new TreeSet<>();
+		for (MemoryType type : MemoryType.values()) {
+			for (int times = 1; times <= 2; times++) {
+				OrcProfile orc = orcRemembering(type, times);
+				for (DialogueTrigger trigger : DialogueTrigger.values()) {
+					for (int seed = 0; seed < 400; seed++) {
+						reachable.add(selector.select(orc, STEVE, "Steve", trigger, 10 * 24000L, new SplittableRandom(seed))
+								.orElseThrow().translationKey());
+					}
+				}
+			}
+		}
+		Matcher matcher = DIALOGUE_KEY.matcher(readLang("es_es"));
+		while (matcher.find()) {
+			assertTrue(reachable.contains(matcher.group(1)), "la frase " + matcher.group(1) + " nunca se usa");
 		}
 	}
 

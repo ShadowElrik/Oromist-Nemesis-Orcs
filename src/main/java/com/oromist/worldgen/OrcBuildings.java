@@ -2,6 +2,7 @@ package com.oromist.worldgen;
 
 import com.oromist.worldgen.buildings.BonfireBuilding;
 import com.oromist.worldgen.buildings.ChieftainTentBuilding;
+import com.oromist.worldgen.buildings.FarmPlotBuilding;
 import com.oromist.worldgen.buildings.ForgeBuilding;
 import com.oromist.worldgen.buildings.HutBuilding;
 import com.oromist.worldgen.buildings.LonghouseBuilding;
@@ -20,11 +21,12 @@ public final class OrcBuildings {
 	public static final OrcBuilding WATCHTOWER = new WatchtowerBuilding();
 	public static final OrcBuilding FORGE = new ForgeBuilding();
 	public static final OrcBuilding TOTEM = new TotemBuilding();
+	public static final OrcBuilding FARM_PLOT = new FarmPlotBuilding();
 
 	private static final Map<String, OrcBuilding> BY_ID = new LinkedHashMap<>();
 
 	static {
-		for (OrcBuilding building : new OrcBuilding[] {BONFIRE, CHIEFTAIN_TENT, HUT, LONGHOUSE, WATCHTOWER, FORGE, TOTEM}) {
+		for (OrcBuilding building : new OrcBuilding[] {BONFIRE, CHIEFTAIN_TENT, HUT, LONGHOUSE, WATCHTOWER, FORGE, TOTEM, FARM_PLOT}) {
 			BY_ID.put(building.id(), building);
 		}
 	}
