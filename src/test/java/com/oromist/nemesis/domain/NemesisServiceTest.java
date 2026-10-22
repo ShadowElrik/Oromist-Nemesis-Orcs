@@ -163,4 +163,20 @@ class NemesisServiceTest {
 		}
 		return survived;
 	}
+
+	@Test
+	void theBoardShowsOrcsThatRememberThePlayerOrWhoseTraitsHeKnows() {
+		NemesisService service = service(1.0f);
+		OrcProfile killer = service.createProfile(OrcArchetype.AXEMAN, 1.0f, 0, OrcRank.GRUNT);
+		service.onOrcKilledPlayer(killer, steveInPlains);
+		OrcProfile spied = service.createProfile(OrcArchetype.SHAMAN, 1.0f, 0, OrcRank.WARCHIEF);
+		spied.gainTrait(OrcTrait.FRAIL);
+		spied.revealTraitTo(steve, OrcTrait.FRAIL);
+		service.createProfile(OrcArchetype.ARCHER, 1.0f, 0, OrcRank.CAPTAIN); // Ni lo conoce ni sabe nada de él.
+
+		List<OrcProfile> known = service.knownTo(steve);
+
+		assertEquals(List.of(killer.id(), spied.id()), known.stream().map(OrcProfile::id).toList());
+		assertTrue(service.knownTo(alex).isEmpty());
+	}
 }
