@@ -27,7 +27,6 @@ import java.util.random.RandomGenerator;
  */
 public final class MemoryDialogueSelector implements DialogueSelector {
 	private static final String PREFIX = "dialogue.oromist-npc.";
-	private static final long TICKS_PER_DAY = 24000L;
 	private static final String FIRST_MEETING = "first_meeting";
 
 	private final DialogueCatalog catalog;
@@ -109,20 +108,23 @@ public final class MemoryDialogueSelector implements DialogueSelector {
 		int variants = catalog.variants(category);
 		String key = PREFIX + category + "." + random.nextInt(variants);
 
-		long daysAgo = memory.map(m -> Math.max(0, (gameTime - m.gameTime()) / TICKS_PER_DAY)).orElse(0L);
+		long daysAgo = memory.map(m -> m.daysAgo(gameTime)).orElse(0L);
 		String place = memory.map(Memory::place).orElse("");
 		long times = memory.map(m -> speaker.countMemories(playerId, m.type())).orElse(0L);
 
 		List<DialogueLine.Arg> args = new ArrayList<>();
 		args.add(new DialogueLine.Literal(playerName));
 		args.add(new DialogueLine.Number(daysAgo));
-		args.add(place.isEmpty() ? new DialogueLine.Translatable("place.oromist-npc.unknown") : new DialogueLine.Translatable(biomeKey(place)));
+		args.add(new DialogueLine.Translatable(placeTranslationKey(place)));
 		args.add(new DialogueLine.Number(times));
 		return new DialogueLine(key, args);
 	}
 
-	/** "minecraft:dark_forest" → "biome.minecraft.dark_forest" (clave vanilla del bioma). */
-	private static String biomeKey(String place) {
-		return "biome." + place.replace(':', '.');
+	/**
+	 * Clave de traducción del lugar de un recuerdo: "minecraft:dark_forest" → "biome.minecraft.dark_forest"
+	 * (la clave vanilla del bioma), o "lugar desconocido" si no se guardó.
+	 */
+	public static String placeTranslationKey(String place) {
+		return place.isEmpty() ? "place.oromist-npc.unknown" : "biome." + place.replace(':', '.');
 	}
 }

@@ -10,7 +10,8 @@
 		"fabric-gametest": [
 			"com.oromist.gametest.OrcCombatGameTests",
 			"com.oromist.gametest.ShamanGameTests",
-			"com.oromist.gametest.RiderGameTests"
+			"com.oromist.gametest.RiderGameTests",
+			"com.oromist.gametest.HordeBoardGameTests"
 		]
 	},
 	"depends": {

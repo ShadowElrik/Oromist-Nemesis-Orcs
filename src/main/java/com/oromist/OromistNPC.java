@@ -11,6 +11,7 @@ import com.oromist.dialogue.game.ChatDialogueSpeaker;
 import com.oromist.dialogue.game.DialogueSpeaker;
 import com.oromist.entity.OrcEntity;
 import com.oromist.entity.OrcSizes;
+import com.oromist.horde.game.AugurBoneEvents;
 import com.oromist.nemesis.game.IntelEvents;
 import com.oromist.nemesis.game.NemesisAnnouncer;
 import com.oromist.nemesis.game.NemesisCombatEvents;
@@ -54,6 +55,7 @@ public class OromistNPC implements ModInitializer {
 		OrcEntity.installHooks(new OrcNemesisHooks(runtime, speaker));
 		new NemesisCombatEvents(runtime, speaker).register();
 		new IntelEvents(runtime, speaker).register();
+		new AugurBoneEvents(runtime).register();
 
 		// Emboscadas
 		AmbushDirector ambushes = new AmbushDirector(runtime, new AmbushSpawner(speaker), ActivityDetector.DEFAULTS);

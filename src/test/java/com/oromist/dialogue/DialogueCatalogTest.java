@@ -61,6 +61,29 @@ class DialogueCatalogTest {
 		}
 	}
 
+	/** Los tres idiomas tienen exactamente las mismas claves (frases, menús, objetos...). */
+	@Test
+	void everyLanguageHasTheSameKeys() throws IOException {
+		java.util.Set<String> reference = keys(readLang("en_us"));
+		for (String language : List.of("es_es", "es_cl")) {
+			assertEquals(reference, keys(readLang(language)), "claves distintas en " + language);
+		}
+	}
+
+	/** Cada tipo de recuerdo tiene su texto en el tablero de la Horda. */
+	@Test
+	void everyMemoryTypeCanBeDescribed() throws IOException {
+		java.util.Set<String> keys = keys(readLang("en_us"));
+		for (com.oromist.nemesis.domain.MemoryType type : com.oromist.nemesis.domain.MemoryType.values()) {
+			String key = "memory.oromist-npc." + type.name().toLowerCase(java.util.Locale.ROOT);
+			assertTrue(keys.contains(key), "falta " + key);
+		}
+	}
+
+	private static java.util.Set<String> keys(String json) {
+		return com.google.gson.JsonParser.parseString(json).getAsJsonObject().keySet();
+	}
+
 	private static String readLang(String language) throws IOException {
 		try (InputStream in = DialogueCatalogTest.class.getResourceAsStream("/assets/oromist-npc/lang/" + language + ".json")) {
 			return new String(in.readAllBytes(), StandardCharsets.UTF_8);

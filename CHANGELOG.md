@@ -1,5 +1,24 @@
 # Registro de cambios
 
+## 0.5.0 — El tablero de la Horda
+
+### Añadido
+- **Hueso del augur** (objeto nuevo): los chamanes leen los huesos para conocer a la Horda. Al
+  usarlo (clic derecho) se abre el **tablero de la Horda**, un menú tipo cofre con los orcos que
+  conoces agrupados en caudillos, capitanes y soldados:
+  - Cada orco aparece con su arma; tu némesis, con una calavera ☠. Capitanes y caudillos brillan.
+  - Al pasar el ratón: rango, arquetipo, rasgos (los no descubiertos como `???`), rencor, veces que
+    volvió de la muerte y sus recuerdos más importantes ("Te mató en Taiga (hace 3 días)").
+  - Al hacer clic sobre un orco: su ficha completa y todos sus recuerdos en el chat.
+  - No se gasta y no se puede sacar nada del tablero.
+- **Cómo conseguirlo**: los chamanes con nombre siempre lo sueltan al morir de verdad, y los chamanes
+  rasos a veces (25 %). También se fabrica con **hueso + notas de guerra + saco de tinta brillante**.
+- El tablero también muestra a los capitanes que aún no te conocen pero de los que descubriste algo
+  (por ejemplo, con notas de guerra).
+
+### Cambiado
+- El botín especial al morir (notas de guerra y hueso del augur) se decide en una clase propia, `OrcTrophies`.
+
 ## 0.4.0 — Chamanes, jinetes e información de guerra
 
 ### Añadido

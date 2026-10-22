@@ -16,6 +16,7 @@ te emboscan en tu casa, en la mina o de viaje, y viven en aldeas propias.
 | **Chamanes** | Lanzan *fuego verde* (no quema bloques), hacen brotar *garras de hueso* si te acercas, dan fuerza y regeneración a los orcos que luchan cerca y hacen más probable que un capitán caído vuelva. |
 | **Jinetes** | Cabalgan caballos zombi y embisten con lanza. Escoltan las emboscadas de viaje. Si les matas la montura, lo recuerdan. |
 | **Combate en grupo** | *Grito de guerra* que alerta a los orcos cercanos, *liderazgo* (los soldados cerca de un capitán pegan más fuerte y no huyen) y *flanqueo* (rodean al objetivo). |
+| **Tablero de la Horda** | Con el **hueso del augur** abres un menú con los orcos que conoces, por rango: arma, rasgos descubiertos, rencor y recuerdos. Clic en un orco para ver su ficha completa. Funciona también en servidores sin nada extra en el cliente. |
 | **Información de guerra** | Los rasgos de cada orco están ocultos hasta que los descubres: viéndolos en combate, **interrogando** a un soldado malherido (agachado + clic derecho) o leyendo **notas de guerra**. |
 | **Alturas distintas** | Cada orco tiene su propia escala (por defecto 0.85×–1.35×), con más vida si es más grande y voz más grave. |
 | **Rangos** | Soldado → Capitán → Caudillo. Suben al matar jugadores, sobrevivir a la muerte o hacerte huir. Capitanes y caudillos tienen nombre propio ("Gorbag el Cruel") y mejor equipo. |
@@ -29,6 +30,8 @@ te emboscan en tu casa, en la mina o de viaje, y viven en aldeas propias.
 
 ### Comandos
 
+- **Hueso del augur** (clic derecho): abre el tablero de la Horda. Lo sueltan los chamanes y se
+  fabrica con hueso + notas de guerra + saco de tinta brillante.
 - `/nemesis` — lista los orcos que te odian; el primero (☠) es tu némesis. Los rasgos que aún no
   descubriste aparecen como `???`.
 - `/nemesis player <jugador>` — (operadores) lo mismo para otro jugador.
@@ -78,6 +81,8 @@ com.oromist
 │   ├── persistence            Adaptador de guardado: NemesisSavedData (SavedData del mundo) + codecs
 │   └── game                   Adaptadores del juego: eventos de combate, hooks del orco, anuncios,
 │                                interrogatorios y notas de guerra (IntelEvents)
+├── horde                      ★ Java puro: HordeBoard (qué sabe el jugador) y HordeBoardLayout (dónde va cada cosa)
+│   └── game                   Menú tipo cofre (HordeBoardMenu), iconos y el hueso del augur
 ├── dialogue                   ★ Java puro: DialogueSelector (estrategia), MemoryDialogueSelector
 │   └── game                   ChatDialogueSpeaker: muestra las frases en el chat
 ├── entity                     OrcEntity, equipamiento (OrcLoadouts), rasgos → efectos (TraitEffects),

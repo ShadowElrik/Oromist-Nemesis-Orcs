@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:bone",
+    "oromist-npc:war_notes",
+    "minecraft:glow_ink_sac"
+  ],
+  "result": {
+    "id": "oromist-npc:augur_bone"
+  }
+}

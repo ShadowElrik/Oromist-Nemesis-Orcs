@@ -83,6 +83,13 @@ Ningún orco muestra sus debilidades. Para saber que tu némesis teme al fuego t
 unas **notas de guerra**. Los soldados rasos hablan para salvar la vida; los capitanes
 prefieren morir. El que habla lo recordará: la humillación pesa más que una herida.
 
+## Los huesos del augur
+
+Los chamanes no escriben: **leen huesos**. En un hueso tallado con runas verdes ven a toda la
+Horda: quién manda, quién odia a quién y qué cicatrices lleva cada uno. Un humano que le quita
+su hueso a un chamán (o que talla uno con lo que aprende de las notas de guerra) puede leer lo
+mismo... aunque solo lo que ya sabe. Los rasgos que nadie le ha contado siguen siendo `???`.
+
 ## Ideas para el futuro
 
 - Establo de caballos zombi en las aldeas.

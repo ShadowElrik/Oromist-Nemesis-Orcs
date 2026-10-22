@@ -6,9 +6,9 @@ import com.oromist.entity.OrcDisplayNames;
 import com.oromist.entity.OrcEntity;
 import com.oromist.entity.OrcMounts;
 import com.oromist.entity.OrcSquad;
+import com.oromist.entity.OrcTrophies;
 import com.oromist.nemesis.domain.NemesisService;
 import com.oromist.nemesis.domain.OrcProfile;
-import com.oromist.registry.ModItems;
 import java.util.List;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.ChatFormatting;
@@ -31,7 +31,7 @@ import net.minecraft.world.entity.projectile.Projectile;
  * </ul>
  *
  * <p>Si un chamán presencia la muerte de un capitán, este tiene más probabilidad de volver.
- * Un capitán o caudillo que muere de verdad deja caer unas notas de guerra.</p>
+ * El botín especial (notas de guerra, hueso del augur) lo decide {@link OrcTrophies}.</p>
  */
 public final class NemesisCombatEvents {
 	private static final double WITNESS_RADIUS = 16.0;
@@ -73,20 +73,27 @@ public final class NemesisCombatEvents {
 	}
 
 	private void onPlayerKilledOrc(NemesisService service, OrcEntity orc, ServerPlayer player) {
-		OrcProfiles.of(orc, service).ifPresent(profile -> {
-			boolean shamanNearby = OrcSquad.hasShamanNearby(orc);
-			NemesisService.DeathOutcome outcome = service.onOrcSlainByPlayer(profile, Encounters.of(player), shamanNearby);
-			if (outcome == NemesisService.DeathOutcome.DIED) {
-				speaker.speak(orc, player, DialogueTrigger.DYING);
-				if (profile.rank().isNamed() && orc.level() instanceof ServerLevel level) {
-					orc.spawnAtLocation(level, ModItems.WAR_NOTES);
-				}
-			} else if (shamanNearby) {
-				player.sendSystemMessage(Component.translatable("announce.oromist-npc.shaman_ritual",
-						OrcDisplayNames.fullName(profile)).withStyle(ChatFormatting.DARK_GREEN, ChatFormatting.ITALIC));
-			}
-		});
+		// Un orco sin perfil es un soldado anónimo: siempre muere.
+		boolean diedForGood = OrcProfiles.of(orc, service)
+				.map(profile -> resolveDeath(service, orc, profile, player) == NemesisService.DeathOutcome.DIED)
+				.orElse(true);
+		if (orc.level() instanceof ServerLevel level) {
+			OrcTrophies.drop(orc, level, diedForGood);
+		}
 		notifyWitnesses(service, orc, player);
+	}
+
+	/** ¿Muere de verdad o engaña a la muerte? Un chamán cerca ayuda a volver. */
+	private NemesisService.DeathOutcome resolveDeath(NemesisService service, OrcEntity orc, OrcProfile profile, ServerPlayer player) {
+		boolean shamanNearby = OrcSquad.hasShamanNearby(orc);
+		NemesisService.DeathOutcome outcome = service.onOrcSlainByPlayer(profile, Encounters.of(player), shamanNearby);
+		if (outcome == NemesisService.DeathOutcome.DIED) {
+			speaker.speak(orc, player, DialogueTrigger.DYING);
+		} else if (shamanNearby) {
+			player.sendSystemMessage(Component.translatable("announce.oromist-npc.shaman_ritual",
+					OrcDisplayNames.fullName(profile)).withStyle(ChatFormatting.DARK_GREEN, ChatFormatting.ITALIC));
+		}
+		return outcome;
 	}
 
 	private void onMountKilled(NemesisService service, OrcEntity rider, ServerPlayer player) {

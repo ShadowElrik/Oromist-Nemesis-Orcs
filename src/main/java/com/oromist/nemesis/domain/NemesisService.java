@@ -73,6 +73,20 @@ public final class NemesisService {
 				.toList();
 	}
 
+	/**
+	 * Orcos vivos de los que el jugador sabe algo: los que lo recuerdan y los capitanes cuyos
+	 * rasgos ha descubierto (por ejemplo, con notas de guerra). Los que más lo odian, primero.
+	 */
+	public List<OrcProfile> knownTo(UUID playerId) {
+		return repository.all().stream()
+				.filter(OrcProfile::isAlive)
+				.filter(p -> p.grudgeAgainst(playerId) > 0 || !p.knownTraits(playerId).isEmpty())
+				.sorted(Comparator.comparingInt((OrcProfile p) -> p.grudgeAgainst(playerId))
+						.thenComparing(OrcProfile::rank)
+						.reversed())
+				.toList();
+	}
+
 	/** El némesis del jugador: el orco vivo que más lo odia y cumple la condición dada. */
 	public Optional<OrcProfile> nemesisOf(UUID playerId, Predicate<OrcProfile> available) {
 		return enemiesOf(playerId).stream().filter(available).findFirst();
