@@ -8,6 +8,9 @@
 - Dentro de cada clan los orcos se distinguen por **peinado** (cresta, rapado, moño, melena),
   **pintura de guerra** (franja, mandíbula de calavera, huella de mano, rayas, media cara),
   **tatuajes**, **aros** y **cicatrices**.
+- **Los clanes dependen del clima**: frío (Escarcha, Pálidos), cálido y seco (Arena, Sangre),
+  cálido y húmedo (Barro, Brea) y templado (Musgo, Hierro y las pieles originales). Uno de cada
+  siete orcos es un errante de otro clan. Las aldeas y emboscadas usan el clima del lugar.
 - `tools/orc_skins.py`: el generador de las pieles, para retocar o añadir clanes.
 - Vista previa de los clanes en `docs/clanes.png`.
 

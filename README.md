@@ -18,7 +18,7 @@ te emboscan en tu casa, en la mina o de viaje, y viven en aldeas propias.
 | **Combate en grupo** | *Grito de guerra* que alerta a los orcos cercanos, *liderazgo* (los soldados cerca de un capitán pegan más fuerte y no huyen) y *flanqueo* (rodean al objetivo). |
 | **Tablero de la Horda** | Con el **hueso del augur** abres un menú con los orcos que conoces, por rango: arma, rasgos descubiertos, rencor y recuerdos. Clic en un orco para ver su ficha completa. Funciona también en servidores sin nada extra en el cliente. |
 | **Información de guerra** | Los rasgos de cada orco están ocultos hasta que los descubres: viéndolos en combate, **interrogando** a un soldado malherido (agachado + clic derecho) o leyendo **notas de guerra**. |
-| **Clanes y pieles** | 27 pieles en 8 clanes (*Sangre*, *Pálidos*, *Arena*, *Brea*, *Escarcha*, *Barro*, *Musgo*, *Hierro*), con distintos peinados, pinturas de guerra, tatuajes y aros. Un némesis conserva su piel cada vez que vuelve. Ver `docs/clanes.png`. |
+| **Clanes y pieles** | 27 pieles en 8 clanes (*Sangre*, *Pálidos*, *Arena*, *Brea*, *Escarcha*, *Barro*, *Musgo*, *Hierro*), con distintos peinados, pinturas de guerra, tatuajes y aros. **El clima decide el clan**: frío, cálido y seco, cálido y húmedo o templado. Un némesis conserva su piel cada vez que vuelve. Ver `docs/clanes.png`. |
 | **Alturas distintas** | Cada orco tiene su propia escala (por defecto 0.85×–1.35×), con más vida si es más grande y voz más grave. |
 | **Rangos** | Soldado → Capitán → Caudillo. Suben al matar jugadores, sobrevivir a la muerte o hacerte huir. Capitanes y caudillos tienen nombre propio ("Gorbag el Cruel") y mejor equipo. |
 | **Rasgos** | Fortalezas (Bruto, Veloz, Piel gruesa, Inmune a flechas, Berserker) y debilidades (Teme al fuego, Cobarde, Frágil). |
@@ -121,7 +121,7 @@ com.oromist
 | Un rasgo | Valor en `OrcTrait` + su efecto en `TraitEffects` + traducción `trait.oromist-npc.*`. |
 | Frases de diálogo | Añadir `dialogue.oromist-npc.<categoría>.<n>` en los tres `lang/*.json` (ver `LORE.md`); no hace falta tocar código. |
 | Un hechizo de chamán | Un método en `ShamanSpells` y decidir cuándo lanzarlo en `ShamanSpellGoal` (o en una meta nueva). |
-| Un clan o pieles nuevas | Añadir el clan en `tools/orc_skins.py`, ejecutarlo y subir `SKIN_VARIANTS` en `OrcEntity`. |
+| Un clan o pieles nuevas | Añadir el clan en `tools/orc_skins.py` y ejecutarlo, añadirlo con su clima a `entity/clan/OrcClan` y subir `SKIN_VARIANTS` en `OrcEntity`. |
 | Un arquetipo | Valor en `OrcArchetype` (con su `CombatStyle`), su arma en `OrcLoadouts` y su peso de aparición. |
 | Un edificio | Clase que implemente `OrcBuilding`, registrarla en `OrcBuildings` y pedirla en `VillageLayoutPlanner`. |
 | Una situación de emboscada | Valor en `PlayerActivity` + un `ActivityDetector` + un `SpawnLocator`. |

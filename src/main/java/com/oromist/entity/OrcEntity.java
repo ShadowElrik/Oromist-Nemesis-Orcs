@@ -2,6 +2,8 @@ package com.oromist.entity;
 
 import com.oromist.OromistNPC;
 import com.oromist.entity.ai.OrcCombatController;
+import com.oromist.entity.clan.Climate;
+import com.oromist.entity.clan.OrcClan;
 import com.oromist.entity.ai.OrcFlankGoal;
 import com.oromist.entity.ai.OrcRetreatGoal;
 import com.oromist.entity.ai.ShamanWarBloodGoal;
@@ -16,6 +18,7 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SplittableRandom;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
@@ -62,6 +65,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -77,8 +81,8 @@ import org.jspecify.annotations.Nullable;
  */
 public class OrcEntity extends Monster implements CrossbowAttackMob {
 	/**
-	 * Pieles disponibles ({@code textures/entity/orc/orc_<n>.png}): las 3 originales y 3 por cada
-	 * clan de la Horda. Las genera {@code tools/orc_skins.py}; las nuevas se añaden al final para
+	 * Pieles disponibles ({@code textures/entity/orc/orc_<n>.png}): 3 por cada clan de la Horda
+	 * (ver {@link OrcClan}; las 3 primeras son las originales). Las genera {@code tools/orc_skins.py}; las nuevas se añaden al final para
 	 * que los orcos ya guardados conserven su aspecto.
 	 */
 	public static final int SKIN_VARIANTS = 27;
@@ -465,7 +469,8 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 			EntitySpawnReason spawnReason, @Nullable SpawnGroupData groupData) {
 		SpawnGroupData data = super.finalizeSpawn(level, difficulty, spawnReason, groupData);
 		RandomSource random = level.getRandom();
-		setSkinVariant(random.nextInt(SKIN_VARIANTS));
+		// La piel depende del clan, y el clan del clima: Escarcha en la nieve, Arena en el desierto...
+		setSkinVariant(OrcClan.pickSkin(climateAt(level), new SplittableRandom(random.nextLong())));
 		if (profileId == null) {
 			archetype = OrcLoadouts.randomArchetype(random);
 			setSizeScale(OrcSizes.randomScale(random));
@@ -474,6 +479,11 @@ public class OrcEntity extends Monster implements CrossbowAttackMob {
 		}
 		combat.reassess();
 		return data;
+	}
+
+	private Climate climateAt(ServerLevelAccessor level) {
+		Biome biome = level.getBiome(blockPosition()).value();
+		return Climate.of(biome.getBaseTemperature(), biome.hasPrecipitation());
 	}
 
 	/** Configura un orco recién creado por código (emboscadas, estructuras) con un arquetipo concreto. */

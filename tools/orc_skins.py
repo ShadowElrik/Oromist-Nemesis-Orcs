@@ -18,8 +18,9 @@ Clanes × 3 combinaciones de detalles = 24 pieles nuevas (orc_3 ... orc_26).
 Las pieles orc_0, orc_1 y orc_2 son las originales y NO se regeneran, para que los orcos que
 ya existen en los mundos se sigan viendo igual.
 
-Para añadir un clan: agrega una entrada a CLANS y sube SKIN_VARIANTS en OrcEntity
-(3 originales + 3 por clan).
+Para añadir un clan: agrega una entrada al final de CLANS, añádelo con su clima al final de
+OrcClan (src/main/java/com/oromist/entity/clan/OrcClan.java) y sube SKIN_VARIANTS en OrcEntity.
+El orden de CLANS y de OrcClan debe ser el mismo.
 """
 import os
 import random

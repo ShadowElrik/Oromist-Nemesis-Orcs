@@ -63,16 +63,25 @@ Los epítetos cuentan su historia: *el Cruel*, *Cazahumanos*, *Cruzabordes*, *de
 La Horda no es un solo pueblo: son clanes que cruzaron el borde del mundo por caminos distintos,
 y se nota en la piel.
 
-| Clan | Aspecto | De dónde viene |
-|---|---|---|
-| **Sangre** | Piel rojiza, ojos amarillos | Los primeros en cruzar; se pintan con la ceniza de sus hogueras. |
-| **Pálidos** | Piel color hueso, ojos rojos | Vivieron tanto tiempo en las grietas de las Farlands que perdieron el color. |
-| **Arena** | Piel ocre | Cruzaron por los desiertos rotos. |
-| **Brea** | Piel casi negra, ojos verdes que brillan | Salieron de los pozos de alquitrán; los chamanes dicen que ven en la oscuridad. |
-| **Escarcha** | Piel gris azulada, pelo blanco | Llegaron por las tierras heladas y visten pieles claras. |
-| **Barro** | Piel parda | Clan de pantano, pintados de ocre. |
-| **Musgo** | Verde vivo | El clan más numeroso y joven. |
-| **Hierro** | Gris oliva | Herreros; visten tela gris como el metal que forjan. |
+Cada clan se asentó donde el clima le recuerda a su camino, así que **el clima decide qué clanes
+encuentras**: en la nieve verás sobre todo Escarcha y Pálidos; en el desierto, Arena y Sangre.
+Aun así, uno de cada siete orcos es un *errante* de otro clan.
+
+| Clan | Clima | Aspecto | De dónde viene |
+|---|---|---|---|
+| **Escarcha** | ❄ Frío | Piel gris azulada, pelo blanco | Llegaron por las tierras heladas y visten pieles claras. |
+| **Pálidos** | ❄ Frío | Piel color hueso, ojos rojos | Vivieron tanto tiempo en las grietas heladas de las Farlands que perdieron el color. |
+| **Arena** | ☀ Cálido y seco | Piel ocre | Cruzaron por los desiertos rotos. |
+| **Sangre** | ☀ Cálido y seco | Piel rojiza, ojos amarillos | Los primeros en cruzar, bajo un sol que les quemó la piel. |
+| **Barro** | 🌧 Cálido y húmedo | Piel parda | Clan de pantano, pintados de ocre. |
+| **Brea** | 🌧 Cálido y húmedo | Piel casi negra, ojos verdes que brillan | Salieron de los pozos de alquitrán de la selva; los chamanes dicen que ven en la oscuridad. |
+| **Musgo** | 🌲 Templado | Verde vivo | El clan más numeroso y joven. |
+| **Hierro** | 🌲 Templado | Gris oliva | Herreros; visten tela gris como el metal que forjan. |
+| **Primera Horda** | 🌲 Templado | Verde bosque, gris ceniza, pantano oscuro | Las pieles originales. |
+
+El clima sale de la temperatura del bioma: frío por debajo de 0.3 (nieve, taigas), cálido y seco
+desde 1.0 sin lluvia (desierto, sabana, badlands), cálido y húmedo desde 0.8 con lluvia (selva,
+pantano) y templado todo lo demás.
 
 Cada guerrero se distingue además por su peinado (cresta, rapado, moño o melena), su pintura de
 guerra (franja, mandíbula de calavera, huella de mano, rayas o media cara), tatuajes, aros y
