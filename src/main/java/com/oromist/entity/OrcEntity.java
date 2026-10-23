@@ -76,7 +76,12 @@ import org.jspecify.annotations.Nullable;
  * ascensos y diálogos viven en la capa Némesis y se conectan mediante {@link OrcHooks}.</p>
  */
 public class OrcEntity extends Monster implements CrossbowAttackMob {
-	public static final int SKIN_VARIANTS = 3;
+	/**
+	 * Pieles disponibles ({@code textures/entity/orc/orc_<n>.png}): las 3 originales y 3 por cada
+	 * clan de la Horda. Las genera {@code tools/orc_skins.py}; las nuevas se añaden al final para
+	 * que los orcos ya guardados conserven su aspecto.
+	 */
+	public static final int SKIN_VARIANTS = 27;
 
 	private static final EntityDataAccessor<Boolean> CHARGING_CROSSBOW =
 			SynchedEntityData.defineId(OrcEntity.class, EntityDataSerializers.BOOLEAN);

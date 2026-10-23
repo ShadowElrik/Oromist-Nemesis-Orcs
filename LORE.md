@@ -58,6 +58,26 @@ Los epítetos cuentan su historia: *el Cruel*, *Cazahumanos*, *Cruzabordes*, *de
 | **Jinetes en caballo zombi** | ✅ (0.4.0) |
 | Gritos de guerra, liderazgo y lealtad (los capitanes no se delatan) | ✅ (0.4.0) |
 
+## Los clanes
+
+La Horda no es un solo pueblo: son clanes que cruzaron el borde del mundo por caminos distintos,
+y se nota en la piel.
+
+| Clan | Aspecto | De dónde viene |
+|---|---|---|
+| **Sangre** | Piel rojiza, ojos amarillos | Los primeros en cruzar; se pintan con la ceniza de sus hogueras. |
+| **Pálidos** | Piel color hueso, ojos rojos | Vivieron tanto tiempo en las grietas de las Farlands que perdieron el color. |
+| **Arena** | Piel ocre | Cruzaron por los desiertos rotos. |
+| **Brea** | Piel casi negra, ojos verdes que brillan | Salieron de los pozos de alquitrán; los chamanes dicen que ven en la oscuridad. |
+| **Escarcha** | Piel gris azulada, pelo blanco | Llegaron por las tierras heladas y visten pieles claras. |
+| **Barro** | Piel parda | Clan de pantano, pintados de ocre. |
+| **Musgo** | Verde vivo | El clan más numeroso y joven. |
+| **Hierro** | Gris oliva | Herreros; visten tela gris como el metal que forjan. |
+
+Cada guerrero se distingue además por su peinado (cresta, rapado, moño o melena), su pintura de
+guerra (franja, mandíbula de calavera, huella de mano, rayas o media cara), tatuajes, aros y
+cicatrices.
+
 ## Los chamanes
 
 Los chamanes no luchan cuerpo a cuerpo. Llevan un bastón, una calavera como máscara y una

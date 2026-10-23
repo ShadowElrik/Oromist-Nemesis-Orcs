@@ -1,5 +1,20 @@
 # Registro de cambios
 
+## 0.5.1 — Los clanes de la Horda
+
+### Añadido
+- **24 pieles nuevas** (27 en total), organizadas en **8 clanes**, cada uno con su color de piel,
+  ojos, pelo y tela: *Sangre*, *Pálidos*, *Arena*, *Brea*, *Escarcha*, *Barro*, *Musgo* e *Hierro*.
+- Dentro de cada clan los orcos se distinguen por **peinado** (cresta, rapado, moño, melena),
+  **pintura de guerra** (franja, mandíbula de calavera, huella de mano, rayas, media cara),
+  **tatuajes**, **aros** y **cicatrices**.
+- `tools/orc_skins.py`: el generador de las pieles, para retocar o añadir clanes.
+- Vista previa de los clanes en `docs/clanes.png`.
+
+### Compatibilidad
+- Las 3 pieles originales no cambian, y los orcos guardados conservan su aspecto. Solo los
+  perfiles creados con la 0.1.0 pueden cambiar de piel.
+
 ## 0.5.0 — El tablero de la Horda
 
 ### Añadido
