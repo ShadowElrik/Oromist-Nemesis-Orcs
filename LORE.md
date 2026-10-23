@@ -58,6 +58,35 @@ Los epítetos cuentan su historia: *el Cruel*, *Cazahumanos*, *Cruzabordes*, *de
 | **Jinetes en caballo zombi** | ✅ (0.4.0) |
 | Gritos de guerra, liderazgo y lealtad (los capitanes no se delatan) | ✅ (0.4.0) |
 
+## Los clanes
+
+La Horda no es un solo pueblo: son clanes que cruzaron el borde del mundo por caminos distintos,
+y se nota en la piel.
+
+Cada clan se asentó donde el clima le recuerda a su camino, así que **el clima decide qué clanes
+encuentras**: en la nieve verás sobre todo Escarcha y Pálidos; en el desierto, Arena y Sangre.
+Aun así, uno de cada siete orcos es un *errante* de otro clan.
+
+| Clan | Clima | Aspecto | De dónde viene |
+|---|---|---|---|
+| **Escarcha** | ❄ Frío | Piel gris azulada, pelo blanco | Llegaron por las tierras heladas y visten pieles claras. |
+| **Pálidos** | ❄ Frío | Piel color hueso, ojos rojos | Vivieron tanto tiempo en las grietas heladas de las Farlands que perdieron el color. |
+| **Arena** | ☀ Cálido y seco | Piel ocre | Cruzaron por los desiertos rotos. |
+| **Sangre** | ☀ Cálido y seco | Piel rojiza, ojos amarillos | Los primeros en cruzar, bajo un sol que les quemó la piel. |
+| **Barro** | 🌧 Cálido y húmedo | Piel parda | Clan de pantano, pintados de ocre. |
+| **Brea** | 🌧 Cálido y húmedo | Piel casi negra, ojos verdes que brillan | Salieron de los pozos de alquitrán de la selva; los chamanes dicen que ven en la oscuridad. |
+| **Musgo** | 🌲 Templado | Verde vivo | El clan más numeroso y joven. |
+| **Hierro** | 🌲 Templado | Gris oliva | Herreros; visten tela gris como el metal que forjan. |
+| **Primera Horda** | 🌲 Templado | Verde bosque, gris ceniza, pantano oscuro | Las pieles originales. |
+
+El clima sale de la temperatura del bioma: frío por debajo de 0.3 (nieve, taigas), cálido y seco
+desde 1.0 sin lluvia (desierto, sabana, badlands), cálido y húmedo desde 0.8 con lluvia (selva,
+pantano) y templado todo lo demás.
+
+Cada guerrero se distingue además por su peinado (cresta, rapado, moño o melena), su pintura de
+guerra (franja, mandíbula de calavera, huella de mano, rayas o media cara), tatuajes, aros y
+cicatrices.
+
 ## Los chamanes
 
 Los chamanes no luchan cuerpo a cuerpo. Llevan un bastón, una calavera como máscara y una
